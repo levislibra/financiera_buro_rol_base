@@ -1,0 +1,7 @@
+<openerp>
+	<data>
+		<record id="item_configuration" model="financiera.buro.rol.configuracion">
+		    <field name="name">Configuracion</field>
+		</record>
+	</data>
+</openerp>
