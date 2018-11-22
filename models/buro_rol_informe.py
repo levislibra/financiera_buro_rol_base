@@ -20,6 +20,7 @@ class ExtendsResPartnerRol(models.Model):
 			'username': buro_configuracion_id.usuario,
 			'password': buro_configuracion_id.password,
 			'formato': 'json',
+			'version': 2,
 		}
 		url = 'https://informe.riesgoonline.com/api/informes/consultar/'
 		url = url + self.main_id_number
@@ -29,41 +30,65 @@ class ExtendsResPartnerRol(models.Model):
 		print data.keys()
 		if 'error' in data.keys():
 			print "ERROR"
+			raise ValidationError("Para el CUIT " + self.main_id_number + " no existen informes consultados. Pruebe solicitar informe.")
 		else:
-			print "EXISTE LA CUNSULTA"
-			# print data['resultado'].keys()
-			# print data['resultado_informe'].keys()
-			print data['resultado_modulos'].keys()
-			# print data['resultado_modulos']['experto'].keys()
-			print data['resultado_modulos']['estudio'].keys()
-			print data['resultado_modulos']['resumen'].keys()
-			codigo = data['resultado_informe']['codigo']
+			print "EXISTE EL RESULTADO"
+			print data['persona'].keys()
+			codigo = data['informe']['id']
 			informe_existe = False
 			for informe_id in self.buro_rol_informe_ids:
-				if codigo == informe_id.rol_id:
+				print(str(codigo) == informe_id.rol_id)
+				if str(codigo) == informe_id.rol_id:
 					informe_existe = True
 					break
 			if informe_existe:
 				raise ValidationError("El informe ya existe con ROL id " + str(codigo) + ".")
 			else:
 				sexo = None
-				if data['resultado_informe']['sexo'] == 'M':
+				if data['persona']['sexo'] == 'M':
 					sexo = 'masculino'
-				elif data['resultado_informe']['sexo'] == 'F':
+				elif data['persona']['sexo'] == 'F':
 					sexo = 'femenino'
-				fbri_values = {
+				informe_values = {
 					'partner_id': self.id,
-					'name': data['resultado_informe']['nombre'],
-					'rol_id': data['resultado_informe']['codigo'],
-					'cuit': data['resultado_informe']['cuit'],
+					'name': data['persona']['nombre'],
+					'rol_id': codigo,
+					'cuit': self.main_id_number,
 					'sexo': sexo,
-					'perfil': data['resultado_informe']['tipo'],
-					# 'fecha_informe': data['resultado_informe']['']
+					# 'clase': data['persona']['clase'],
+					# 'fecha_nacimiento': data['persona']['fecha_nacimiento'],
+					'perfil_letra': data['persona']['perfil']['letra'],
+					'perfil_texto': data['persona']['perfil']['texto'],
+					# 'fecha_informe': datetime.fromtimestamp(data['informe']['fecha_hora'] / 1e3),
 				}
-				nuevo_informe_id = self.env['financiera.buro.rol.informe'].create(fbri_values)
+				nuevo_informe_id = self.env['financiera.buro.rol.informe'].create(informe_values)
 				self.buro_rol_informe_ids = [nuevo_informe_id.id]
-				# if 'resultado_informe' in data.keys():
-				# 	if 
+				for data_domicilio in data['persona']['domicilios']:
+					domicilio_values = {
+						'buro_rol_informe_id': nuevo_informe_id.id,
+						'domicilio': data_domicilio['domicilio'],
+						'tipo': data_domicilio['tipo'],
+					}
+					nuevo_domicilio_id = self.env['financiera.buro.rol.informe.domicilio'].create(domicilio_values)
+					nuevo_informe_id.domicilio_ids = [nuevo_domicilio_id.id]
+				for data_telefono in data['persona']['telefonos']:
+					telefono_values = {
+						'buro_rol_informe_id': nuevo_informe_id.id,
+						'telefono': data_telefono['numero'],
+						'anio_guia': data_telefono['anio_guia'],
+						'titular': data_telefono['titular'],
+					}
+					nuevo_telefono_id = self.env['financiera.buro.rol.informe.telefono'].create(telefono_values)
+					nuevo_informe_id.telefono_ids = [nuevo_telefono_id.id]
+				for data_actividad in data['persona']['actividad']['actividades_afip']:
+					actividad_values = {
+						'buro_rol_informe_id': nuevo_informe_id.id,
+						'codigo': data_actividad['codigo'],
+						'actividad_comercial': data_actividad['descripcion'],
+						'formulario': data_actividad['formulario'],
+					}
+					nuevo_actividad_id = self.env['financiera.buro.rol.informe.actividad'].create(actividad_values)
+					nuevo_informe_id.actividad_ids = [nuevo_actividad_id.id]
 
 
 class FinancieraBuroRolInforme(models.Model):
@@ -77,7 +102,7 @@ class FinancieraBuroRolInforme(models.Model):
 	sexo = fields.Selection([('masculino', 'Masculino'), ('femenino', 'Femenino')], 'Sexo')
 	clase = fields.Char('Clase')
 	fecha_de_nacimiento = fields.Date('Fecha de nacimiento')
-	perfil = fields.Selection([
+	perfil_letra = fields.Selection([
 		('A', 'A. Perfil Excelente'),
 		('B', 'B. Perfil Superior'),
 		('C', 'C. Perfil Muy Bueno'),
@@ -88,10 +113,11 @@ class FinancieraBuroRolInforme(models.Model):
 		('H', 'H. Perfil Nulo'),
 		('I', 'I. Perfil Incompleto')],
 		'Perfil')
+	perfil_texto = fields.Char('Detalle')
 	domicilio_ids = fields.One2many('financiera.buro.rol.informe.domicilio', 'buro_rol_informe_id', 'Domicilios')
 	telefono_ids = fields.One2many('financiera.buro.rol.informe.telefono', 'buro_rol_informe_id', 'Telefonos')
 	actividad_ids = fields.One2many('financiera.buro.rol.informe.actividad', 'buro_rol_informe_id', 'Actividad comercial')
-	fecha_informe = fields.Date('Fecha del informe')
+	fecha_informe = fields.Datetime('Fecha del informe')
 
 
 class FinancieraBuroRolInformeDomicilio(models.Model):

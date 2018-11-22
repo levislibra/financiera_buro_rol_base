@@ -18,18 +18,20 @@
                 <field name="rol_id"/>
                 <field name="name"/>
                 <field name="cuit"/>
-                <field name="perfil"/>
+                <field name="perfil_letra"/>
+                <field name="perfil_texto"/>
               </tree>
               <form>
                 <group>
                   <field name="name"/>
                   <field name="cuit"/>
-                  <field name="documento"/>
+                  <!-- <field name="documento"/> -->
                   <field name="sexo"/>
-                  <field name="clase"/>
+                  <!-- <field name="clase"/> -->
                   <field name="fecha_de_nacimiento"/>
                   <field name="fecha_informe"/>
-                  <field name="perfil"/>
+                  <field name="perfil_letra"/>
+                  <field name="perfil_texto"/>
                 </group>
                 <notebook>
                   <page string="Domicilios">
@@ -62,47 +64,6 @@
               </form>
             </field>
           </page>
-<!--           
-          <page string='Buro ROL'>
-            <group>
-              <field name="name" readonly="1"/>
-              <field name="cuit" readonly="1"/>
-              <field name="documento" readonly="1"/>
-              <field name="sexo" readonly="1"/>
-              <field name="clase" readonly="1"/>
-              <field name="fecha_de_nacimiento" readonly="1"/>
-              <field name="fecha_informe" readonly="1"/>
-              <field name="perfil" readonly="1"/>
-            </group>
-            <notebook>
-              <page string="Domicilios">
-                <field name="domicilio_ids" readonly="1">
-                  <tree>
-                    <field name="domicilio"/>
-                    <field name="tipo"/>
-                  </tree>
-                </field>
-              </page>
-              <page string="Telefonos">
-                <field name="telefono_ids" readonly="1">
-                  <tree>
-                    <field name="telefono"/>
-                    <field name="anio_guia"/>
-                    <field name="titular"/>
-                  </tree>
-                </field>
-              </page>
-              <page string="Actividades AFIP">
-                <field name="actividad_ids" readonly="1">
-                  <tree>
-                    <field name="actividad_comercial"/>
-                    <field name="codigo"/>
-                    <field name="formulario"/>
-                  </tree>
-                </field>
-              </page>
-            </notebook>
-          </page> -->
         </xpath>
       </field>
     </record>
