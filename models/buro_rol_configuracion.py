@@ -16,6 +16,7 @@ class FinancieraBuroRolConfiguracion(models.Model):
 	saldo_informes = fields.Integer('Saldo Informes')
 	resultado_saldo_informes = fields.Text("Resultado saldo informe")
 	resultado_consulta_sesion = fields.Text("Resultado consulta sesion")
+	modelo_ids = fields.One2many('financiera.buro.rol.configuracion.modelo', 'configuracion_id', 'Modelos Experto segun Entidad')
 	company_id = fields.Many2one('res.company', 'Empresa', required=False, default=lambda self: self.env['res.company']._company_default_get('financiera.buro.rol.configuracion'))
 	
 	@api.one
@@ -42,6 +43,25 @@ class FinancieraBuroRolConfiguracion(models.Model):
 		r = requests.get('https://informe.riesgoonline.com/api/usuarios/sesion?', params=params)
 		self.resultado_consulta_sesion = r
 		print r
+
+	@api.one
+	def get_rol_modelo_segun_entidad(self, entidad_id):
+		result = None
+		for modelo_id in self.modelo_ids:
+			if modelo_id.entidad_id.id == entidad_id.id:
+				if result == None:
+					result = modelo_id.name
+				else:
+					raise ValidationError("Riego Online: Tiene dos o mas modelos para la misma entidad.")
+		return result
+
+class FinancieraBuroRolConfiguracionModelo(models.Model):
+	_name = 'financiera.buro.rol.configuracion.modelo'
+
+	configuracion_id = fields.Many2one('financiera.buro.rol.configuracion', "Configuracion ROL")
+	entidad_id = fields.Many2one('financiera.entidad', 'Entidad')
+	name = fields.Char('Modelo')
+	company_id = fields.Many2one('res.company', 'Empresa', required=False, default=lambda self: self.env['res.company']._company_default_get('financiera.buro.rol.configuracion.modelo'))
 
 class ExtendsResCompany(models.Model):
 	_name = 'res.company'

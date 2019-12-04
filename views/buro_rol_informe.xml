@@ -102,6 +102,7 @@
       <field name="arch" type="xml">
         <xpath expr="//field[@name='saldo']" position="after">
           <separator string="ROL" colspan="2"/>
+          <field name="rol_entidad_id"/>
           <label for='solicitar_informe'/>
           <button name="solicitar_informe" string="Solicitar informe" class="oe_highlight oe_read_only" type="object" confirm="Desea solicitar el informe?"/>
           <field name="rol_fecha_informe"/>

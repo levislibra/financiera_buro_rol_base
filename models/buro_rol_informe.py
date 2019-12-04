@@ -12,6 +12,7 @@ class ExtendsResPartnerRol(models.Model):
 	_inherit = 'res.partner'
 
 	buro_rol_informe_ids = fields.One2many('financiera.buro.rol.informe', 'partner_id', 'Informes')
+	rol_entidad_id = fields.Many2one('financiera.entidad', 'Modelo segun Entidad')
 	rol_perfil_letra = fields.Selection([
 		('A', 'A. Perfil Excelente'),
 		('B', 'B. Perfil Superior'),
@@ -34,9 +35,9 @@ class ExtendsResPartnerRol(models.Model):
 	def consultar_informe(self):
 		rol_configuracion_id = self.company_id.rol_configuracion_id
 		params = {
-			'?username=dm-levislibra&password=1234&formato': rol_configuracion_id.usuario,=json
-			'?username=dm-levislibra&password=1234&formato': rol_configuracion_id.password,=json
-			'?username=dm-levislibra&password=1234&formato': 'json',=json
+			'username': rol_configuracion_id.usuario,
+			'password': rol_configuracion_id.password,
+			'formato': 'json',
 			'version': 2,
 		}
 		url = 'https://informe.riesgoonline.com/api/informes/consultar/'
@@ -54,12 +55,15 @@ class ExtendsResPartnerRol(models.Model):
 			'formato': 'json',
 			'version': 2,
 		}
-		url = 'https://informe.riesgoonline.com/api/informes/solicitar/'
-		url = url + self.main_id_number
-		print url
-		r = requests.get(url, params=params)
-		data = r.json()
-		self.procesar_respuesta_informe_rol(data)
+		modelo = rol_configuracion_id.get_rol_modelo_segun_entidad(self.rol_entidad_id)[0]
+		print("Modelo:: "+str(modelo))
+		if modelo != None:
+			params['procesar_experto'] = modelo
+		# url = 'https://informe.riesgoonline.com/api/informes/solicitar/'
+		# url = url + self.main_id_number
+		# r = requests.get(url, params=params)
+		# data = r.json()
+		# self.procesar_respuesta_informe_rol(data)
 
 	@api.one
 	def procesar_respuesta_informe_rol(self, data):
@@ -70,10 +74,17 @@ class ExtendsResPartnerRol(models.Model):
 		else:
 			print "EXISTE EL RESULTADO"
 			print data['persona'].keys()
+			print "************ experto **************"
+			print data['persona']['experto'].keys()
+			for valor in data['persona']['experto'].keys():
+				print(valor + ":: " + str(data['persona']['experto'][valor]))
+			print "*********** ingresos ***************"
+			print data['persona']['ingresos'].keys()
+
 			codigo = data['informe']['id']
 
-			https://informe.riesgoonline.com/api/informes/consultar/20344560715?username=dm-levislibra&password=1234&formato=json
-			break
+			# https://informe.riesgoonline.com/api/informes/consultar/:cuit(/:informe)
+			# break
 			informe_existe = False
 			for informe_id in self.buro_rol_informe_ids:
 				print(str(codigo) == informe_id.rol_id)

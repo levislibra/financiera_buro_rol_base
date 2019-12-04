@@ -38,6 +38,17 @@
                         <field name="saldo_informes" readonly="1"/>
                       </group>
                       <group>
+                        <!-- <label for="modelo_ids"/> -->
+                        <notebook>
+                          <page string="Modelos Experto segun Entidad">
+                            <field name="modelo_ids">
+                              <tree editable="true">
+                                <field name="entidad_id" required="1"/>
+                                <field name="name" required="1"/>
+                              </tree>
+                            </field>
+                          </page>
+                        </notebook>
                       </group>
                     </group>
                 </sheet>
