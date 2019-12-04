@@ -32,11 +32,11 @@ class ExtendsResPartnerRol(models.Model):
 
 	@api.one
 	def consultar_informe(self):
-		buro_configuracion_id = self.env['financiera.buro.rol.configuracion'].browse(1)
+		rol_configuracion_id = self.company_id.rol_configuracion_id
 		params = {
-			'username': buro_configuracion_id.usuario,
-			'password': buro_configuracion_id.password,
-			'formato': 'json',
+			'?username=dm-levislibra&password=1234&formato': rol_configuracion_id.usuario,=json
+			'?username=dm-levislibra&password=1234&formato': rol_configuracion_id.password,=json
+			'?username=dm-levislibra&password=1234&formato': 'json',=json
 			'version': 2,
 		}
 		url = 'https://informe.riesgoonline.com/api/informes/consultar/'
@@ -47,10 +47,10 @@ class ExtendsResPartnerRol(models.Model):
 
 	@api.one
 	def solicitar_informe(self):
-		buro_configuracion_id = self.env['financiera.buro.rol.configuracion'].browse(1)
+		rol_configuracion_id = self.company_id.rol_configuracion_id
 		params = {
-			'username': buro_configuracion_id.usuario,
-			'password': buro_configuracion_id.password,
+			'username': rol_configuracion_id.usuario,
+			'password': rol_configuracion_id.password,
 			'formato': 'json',
 			'version': 2,
 		}
@@ -71,6 +71,9 @@ class ExtendsResPartnerRol(models.Model):
 			print "EXISTE EL RESULTADO"
 			print data['persona'].keys()
 			codigo = data['informe']['id']
+
+			https://informe.riesgoonline.com/api/informes/consultar/20344560715?username=dm-levislibra&password=1234&formato=json
+			break
 			informe_existe = False
 			for informe_id in self.buro_rol_informe_ids:
 				print(str(codigo) == informe_id.rol_id)
@@ -131,6 +134,7 @@ class ExtendsResPartnerRol(models.Model):
 					nuevo_informe_id.actividad_ids = [nuevo_actividad_id.id]
 					self.rol_actividad_ids = [nuevo_actividad_id.id]
 
+
 class FinancieraBuroRolInforme(models.Model):
 	_name = 'financiera.buro.rol.informe'
 
@@ -159,6 +163,7 @@ class FinancieraBuroRolInforme(models.Model):
 	actividad_ids = fields.One2many('financiera.buro.rol.informe.actividad', 'buro_rol_informe_id', 'Actividad comercial')
 	fecha_informe = fields.Datetime('Fecha del informe')
 	capacidad_pago_mensual = fields.Float('ROL Experto - Capacidad pago mensual', digits=(16,2))
+	company_id = fields.Many2one('res.company', 'Empresa', required=False, default=lambda self: self.env['res.company']._company_default_get('financiera.buro.rol.informe'))
 
 
 class FinancieraBuroRolInformeDomicilio(models.Model):
@@ -168,6 +173,7 @@ class FinancieraBuroRolInformeDomicilio(models.Model):
 	partner_id = fields.Many2one('res.partner', 'Cliente')
 	domicilio = fields.Char('Domicilio')
 	tipo = fields.Char('Tipo')
+	company_id = fields.Many2one('res.company', 'Empresa', required=False, default=lambda self: self.env['res.company']._company_default_get('financiera.buro.rol.informe.domicilio'))
 
 class FinancieraBuroRolInformeTelefono(models.Model):
 	_name = 'financiera.buro.rol.informe.telefono'
@@ -177,6 +183,7 @@ class FinancieraBuroRolInformeTelefono(models.Model):
 	telefono = fields.Char('Telefono')
 	anio_guia = fields.Char('Año')
 	titular = fields.Char('Titular')
+	company_id = fields.Many2one('res.company', 'Empresa', required=False, default=lambda self: self.env['res.company']._company_default_get('financiera.buro.rol.informe.telefono'))
 
 class FinancieraBuroRolInformeActividad(models.Model):
 	_name = 'financiera.buro.rol.informe.actividad'
@@ -186,3 +193,4 @@ class FinancieraBuroRolInformeActividad(models.Model):
 	actividad_comercial = fields.Char('Actividad comercial')
 	codigo = fields.Integer('Codigo')
 	formulario = fields.Integer('Formulario')
+	company_id = fields.Many2one('res.company', 'Empresa', required=False, default=lambda self: self.env['res.company']._company_default_get('financiera.buro.rol.informe.actividad'))

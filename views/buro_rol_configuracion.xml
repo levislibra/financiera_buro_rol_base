@@ -23,15 +23,21 @@
                   <button name="consulta_sesion" string="Consulta sesion" type="object" />
                 </header>
                 <sheet>
+                  <group>
+                      <group>
+                        <field name="company_id" groups="base.group_erp_manager"/>
+                        <field name="name"/>
+                      </group>
+                      <group>
+                      </group>
+                    </group>
                     <group>
                       <group string="Información conexión">
                         <field name="usuario"/>
                         <field name="password" password="True"/>
                         <field name="saldo_informes" readonly="1"/>
                       </group>
-                      <group string="Información para test">
-                        <field name="resultado_saldo_informes"/>
-                        <field name="resultado_consulta_sesion"/>
+                      <group>
                       </group>
                     </group>
                 </sheet>

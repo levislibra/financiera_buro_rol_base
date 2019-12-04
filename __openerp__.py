@@ -26,7 +26,8 @@
         # 'security/ir.model.access.csv',
         'views/buro_rol_configuracion.xml',
         'views/buro_rol_informe.xml',
-        'data/defaultdata.xml',
+        'views/extends_res_company.xml',
+        # 'data/defaultdata.xml',
     ],
     # only loaded in demonstration mode
     'demo': [
