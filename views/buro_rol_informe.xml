@@ -50,7 +50,7 @@
                       <!-- <field name="documento"/> -->
                       <field name="sexo"/>
                       <!-- <field name="clase"/> -->
-                      <field name="fecha_de_nacimiento"/>
+                      <field name="fecha_nacimiento"/>
                       <field name="fecha_informe"/>
                       <field name="perfil_letra"/>
                       <field name="perfil_texto"/>
@@ -108,7 +108,16 @@
           <field name="rol_fecha_informe"/>
           <field name="rol_perfil_letra"/>
           <field name="rol_perfil_texto"/>
-          <field name="rol_capacidad_pago_mensual"/>
+          <field name="rol_experto_nombre" readonly="1"/>
+          <field name="rol_experto_codigo" readonly="1"/>
+          <field name="rol_experto_tarjeta" readonly="1"/>
+          <field name="rol_experto_puntos" readonly="1"/>
+          <field name="rol_experto_detalles_estado" readonly="1"/>
+          <field name="rol_experto_detalles_texto" readonly="1"/>
+          <field name="rol_experto_ingreso" readonly="1"/>
+          <field name="rol_experto_resultado" readonly="1"/>
+          <field name="rol_experto_compromiso_mensual" readonly="1"/>
+          <field name="rol_capacidad_pago_mensual" readonly="1"/>
         </xpath>
       </field>
     </record>

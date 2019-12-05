@@ -3,6 +3,7 @@
 from openerp import models, fields, api
 from datetime import datetime, timedelta
 from dateutil import relativedelta
+from datetime import date
 from openerp.exceptions import UserError, ValidationError
 import time
 import requests
@@ -25,7 +26,18 @@ class ExtendsResPartnerRol(models.Model):
 		('I', 'I. Perfil Incompleto')],
 		'Perfil')
 	rol_perfil_texto = fields.Char('Detalle')
+
+	rol_experto_nombre = fields.Char('Modelo evaluado')
+	rol_experto_codigo = fields.Char('Codigo')
+	rol_experto_tarjeta = fields.Char('Tarjeta de Credito')
+	rol_experto_puntos = fields.Integer('Puntos')
+	rol_experto_detalles_estado = fields.Char('Estado')
+	rol_experto_detalles_texto = fields.Char('Detalle')
+	rol_experto_ingreso = fields.Char('Ingresos')
+	rol_experto_resultado = fields.Char('Resultado')
+	rol_experto_compromiso_mensual = fields.Char('Compromiso mensual')
 	rol_capacidad_pago_mensual = fields.Float('ROL Experto - Capacidad pago mensual', digits=(16,2))
+	
 	rol_domicilio_ids = fields.One2many('financiera.buro.rol.informe.domicilio', 'partner_id', 'Domicilios')
 	rol_telefono_ids = fields.One2many('financiera.buro.rol.informe.telefono', 'partner_id', 'Telefonos')
 	rol_actividad_ids = fields.One2many('financiera.buro.rol.informe.actividad', 'partner_id', 'Actividad comercial')
@@ -47,7 +59,7 @@ class ExtendsResPartnerRol(models.Model):
 		self.procesar_respuesta_informe_rol(data)
 
 	@api.one
-	def solicitar_informe(self):
+	def solicitar_informe(self, modelo=None):
 		rol_configuracion_id = self.company_id.rol_configuracion_id
 		params = {
 			'username': rol_configuracion_id.usuario,
@@ -55,8 +67,10 @@ class ExtendsResPartnerRol(models.Model):
 			'formato': 'json',
 			'version': 2,
 		}
-		modelo = rol_configuracion_id.get_rol_modelo_segun_entidad(self.rol_entidad_id)[0]
-		print("Modelo:: "+str(modelo))
+		print("MODELOOOOO:: "+str(modelo))
+		if modelo == None:
+			modelo = rol_configuracion_id.get_rol_modelo_segun_entidad(self.rol_entidad_id)[0]
+		print("Modelo luego de check entidades:: "+str(modelo))
 		if modelo != None:
 			params['procesar_experto'] = modelo
 		# url = 'https://informe.riesgoonline.com/api/informes/solicitar/'
@@ -94,6 +108,8 @@ class ExtendsResPartnerRol(models.Model):
 			if informe_existe:
 				raise ValidationError("El informe ya existe con ROL id " + str(codigo) + ".")
 			else:
+				fecha = date.fromtimestamp(data['informe']['fecha_hora'])
+				self.rol_fecha_informe = fecha
 				sexo = None
 				if data['persona']['sexo'] == 'M':
 					sexo = 'masculino'
@@ -101,17 +117,20 @@ class ExtendsResPartnerRol(models.Model):
 					sexo = 'femenino'
 				self.rol_perfil_letra = data['persona']['perfil']['letra']
 				self.rol_perfil_texto = data['persona']['perfil']['texto']
+				print("DATOSSSS")
+				print(data['persona']['clase'])
+				print(data['persona']['fecha_nacimiento'])
 				informe_values = {
 					'partner_id': self.id,
 					'name': data['persona']['nombre'],
 					'rol_id': codigo,
 					'cuit': self.main_id_number,
 					'sexo': sexo,
-					# 'clase': data['persona']['clase'],
-					# 'fecha_nacimiento': data['persona']['fecha_nacimiento'],
+					'clase': data['persona']['clase'],
+					'fecha_nacimiento': data['persona']['fecha_nacimiento'],
 					'perfil_letra': data['persona']['perfil']['letra'],
 					'perfil_texto': data['persona']['perfil']['texto'],
-					# 'fecha_informe': datetime.fromtimestamp(data['informe']['fecha_hora'] / 1e3),
+					'fecha_informe': fecha,
 				}
 				nuevo_informe_id = self.env['financiera.buro.rol.informe'].create(informe_values)
 				self.buro_rol_informe_ids = [nuevo_informe_id.id]
@@ -144,6 +163,29 @@ class ExtendsResPartnerRol(models.Model):
 					nuevo_actividad_id = self.env['financiera.buro.rol.informe.actividad'].create(actividad_values)
 					nuevo_informe_id.actividad_ids = [nuevo_actividad_id.id]
 					self.rol_actividad_ids = [nuevo_actividad_id.id]
+				if 'experto' in data['persona'].keys():
+					rol_experto = data['persona']['experto']
+					self.rol_experto_nombre = rol_experto['nombre']
+					self.rol_experto_codigo = rol_experto['codigo']
+					self.rol_experto_tarjeta = rol_experto['tarjeta']
+					self.rol_experto_puntos = rol_experto['puntos']
+					self.rol_experto_detalles_estado = rol_experto['detalles'][0]['estado']
+					self.rol_experto_detalles_texto = rol_experto['detalles'][0]['texto']
+					self.rol_experto_ingreso = rol_experto['ingreso']
+					self.rol_experto_compromiso_mensual = rol_experto['compromiso_mensual']
+					self.rol_experto_resultado = rol_experto['resultado']
+					if self.rol_experto_resultado == 'S':
+						prestamo = rol_experto['prestamo'].replace('.', '').replace(',00', '')
+						self.rol_capacidad_pago_mensual = float(prestamo)
+						rol_configuracion_id = self.company_id.rol_configuracion_id
+						if rol_configuracion_id.asignar_capacidad_pago_mensual:
+							self.capacidad_pago_mensual = self.rol_capacidad_pago_mensual
+					elif self.rol_experto_resultado == 'I':
+						self.rol_capacidad_pago_mensual = 0
+						# Enviar mensaje de perfil incompleto
+					elif self.rol_experto_resultado == 'N':
+						self.rol_capacidad_pago_mensual = 0
+						# Hacer algo
 
 
 class FinancieraBuroRolInforme(models.Model):
@@ -156,7 +198,7 @@ class FinancieraBuroRolInforme(models.Model):
 	documento = fields.Char('Documento')
 	sexo = fields.Selection([('masculino', 'Masculino'), ('femenino', 'Femenino')], 'Sexo')
 	clase = fields.Char('Clase')
-	fecha_de_nacimiento = fields.Date('Fecha de nacimiento')
+	fecha_nacimiento = fields.Date('Fecha de nacimiento')
 	perfil_letra = fields.Selection([
 		('A', 'A. Perfil Excelente'),
 		('B', 'B. Perfil Superior'),
@@ -180,7 +222,7 @@ class FinancieraBuroRolInforme(models.Model):
 class FinancieraBuroRolInformeDomicilio(models.Model):
 	_name = 'financiera.buro.rol.informe.domicilio'
 
-	buro_rol_informe_id = fields.Many2one('financiera.buro.rol.informe', 'Informe')
+	buro_rol_informe_id = fields.Many2one('financiera.buro.rol.informe', 'Informe', ondelete='cascade')
 	partner_id = fields.Many2one('res.partner', 'Cliente')
 	domicilio = fields.Char('Domicilio')
 	tipo = fields.Char('Tipo')
@@ -189,7 +231,7 @@ class FinancieraBuroRolInformeDomicilio(models.Model):
 class FinancieraBuroRolInformeTelefono(models.Model):
 	_name = 'financiera.buro.rol.informe.telefono'
 
-	buro_rol_informe_id = fields.Many2one('financiera.buro.rol.informe', 'Informe')
+	buro_rol_informe_id = fields.Many2one('financiera.buro.rol.informe', 'Informe', ondelete='cascade')
 	partner_id = fields.Many2one('res.partner', 'Cliente')
 	telefono = fields.Char('Telefono')
 	anio_guia = fields.Char('Año')
@@ -199,9 +241,45 @@ class FinancieraBuroRolInformeTelefono(models.Model):
 class FinancieraBuroRolInformeActividad(models.Model):
 	_name = 'financiera.buro.rol.informe.actividad'
 
-	buro_rol_informe_id = fields.Many2one('financiera.buro.rol.informe', 'Informe')
+	buro_rol_informe_id = fields.Many2one('financiera.buro.rol.informe', 'Informe', ondelete='cascade')
 	partner_id = fields.Many2one('res.partner', 'Cliente')
 	actividad_comercial = fields.Char('Actividad comercial')
 	codigo = fields.Integer('Codigo')
 	formulario = fields.Integer('Formulario')
 	company_id = fields.Many2one('res.company', 'Empresa', required=False, default=lambda self: self.env['res.company']._company_default_get('financiera.buro.rol.informe.actividad'))
+
+class ExtendsFinancieraPrestamo(models.Model):
+	_name = 'financiera.prestamo'
+	_inherit = 'financiera.prestamo'
+
+	@api.one
+	def enviar_a_revision(self):
+		print("ENVIAR A REVISION")
+		rol_configuracion_id = self.company_id.rol_configuracion_id
+		dias_vovler_a_consultar = rol_configuracion_id.dias_vovler_a_consultar
+		consultar_distinto_modelo = rol_configuracion_id.consultar_distinto_modelo
+		autorizar_automaticamente = rol_configuracion_id.autorizar_automaticamente
+
+		rol_active = rol_configuracion_id.get_rol_active_segun_entidad(self.sucursal_id)[0]
+		rol_modelo = rol_configuracion_id.get_rol_modelo_segun_entidad(self.sucursal_id)[0]
+		if len(self.comercio_id) > 0:
+			rol_active = rol_configuracion_id.get_rol_active_segun_entidad(self.comercio_id)[0]
+			rol_modelo = rol_configuracion_id.get_rol_modelo_segun_entidad(self.comercio_id)[0]
+		
+		rol_dias = False
+		if self.partner_id.rol_fecha_informe != False and dias_vovler_a_consultar > 0:
+			fecha_inicial = datetime.strptime(self.fecha_informe, "%Y-%m-%d")
+			fecha_final = datetime.now()
+			diferencia = fecha_final - fecha_inicial
+			if diferencia.days >= dias_vovler_a_consultar:
+				rol_dias = True
+		else:
+			rol_dias = True
+		
+		rol_distinto_modelo = consultar_distinto_modelo and (rol_modelo != self.partner_id.rol_experto_codigo)
+		if rol_active and (rol_dias or rol_distinto_modelo):
+			# self.partner_id.solicitar_informe(rol_modelo)
+			self.partner_id.consultar_informe()
+		super(ExtendsFinancieraPrestamo, self).enviar_a_revision()
+		if autorizar_automaticamente:
+			self.enviar_a_autorizado()
