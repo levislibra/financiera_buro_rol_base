@@ -100,24 +100,37 @@
       <field name="model">res.partner</field>
       <field name="inherit_id" ref="financiera_prestamos.partner_form_inherited"/>
       <field name="arch" type="xml">
-        <xpath expr="//field[@name='saldo']" position="after">
-          <separator string="ROL" colspan="2"/>
-          <field name="rol_entidad_id"/>
-          <label for='solicitar_informe'/>
-          <button name="solicitar_informe" string="Solicitar informe" class="oe_highlight oe_read_only" type="object" confirm="Desea solicitar el informe?"/>
-          <field name="rol_fecha_informe"/>
-          <field name="rol_perfil_letra"/>
-          <field name="rol_perfil_texto"/>
-          <field name="rol_experto_nombre" readonly="1"/>
-          <field name="rol_experto_codigo" readonly="1"/>
-          <field name="rol_experto_tarjeta" readonly="1"/>
-          <field name="rol_experto_puntos" readonly="1"/>
-          <field name="rol_experto_detalles_estado" readonly="1"/>
-          <field name="rol_experto_detalles_texto" readonly="1"/>
-          <field name="rol_experto_ingreso" readonly="1"/>
-          <field name="rol_experto_resultado" readonly="1"/>
-          <field name="rol_experto_compromiso_mensual" readonly="1"/>
-          <field name="rol_capacidad_pago_mensual" readonly="1"/>
+        <xpath expr="//sheet/notebook" position="before">
+          <group string="ROL">
+            <group>
+              <field name="rol_entidad_id"/>
+              <label for='solicitar_informe'/>
+              <button name="solicitar_informe" string="Solicitar informe" class="oe_highlight oe_read_only" type="object" confirm="Desea solicitar el informe?"/>
+              <field name="rol_fecha_informe"/>
+              <field name="rol_perfil_letra"/>
+              <field name="rol_perfil_texto"/>
+              <label for="rol_experto_nombre" string="Modelo evaluado"/>
+              <div>
+                <field name="rol_experto_nombre" class="oe_inline" readonly="1"/>|
+                <field name="rol_experto_codigo" class="oe_inline" readonly="1"/>
+              </div>
+              <field name="rol_experto_tarjeta" invisible="1"/>
+              <field name="rol_experto_puntos" invisible="1"/>
+              <field name="rol_experto_ingreso" readonly="1"/>
+              <field name="rol_experto_compromiso_mensual" readonly="1"/>
+              <field name="rol_experto_resultado" readonly="1"/>
+              <field name="rol_experto_monto_mensual_evaluado" attrs="{'invisible': [('rol_experto_resultado', '=', 'S')]}" readonly="1"/>
+              <label for="consultar_informe"/>
+              <div>
+                <button name="consultar_informe" string="Actualizar informe" class="oe_highlight oe_read_only" type="object" confirm="Desea actualizar el perfil segun el ultimo informe?"/>
+              </div>
+              <field name="rol_capacidad_pago_mensual" readonly="1"/>
+            </group>
+            <group>
+              <field name="rol_experto_detalles_estado" invisible="1"/>
+              <field name="rol_experto_detalles_texto" widget="html" readonly="0"/>
+            </group>
+          </group>
         </xpath>
       </field>
     </record>

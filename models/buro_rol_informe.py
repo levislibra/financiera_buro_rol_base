@@ -32,10 +32,11 @@ class ExtendsResPartnerRol(models.Model):
 	rol_experto_tarjeta = fields.Char('Tarjeta de Credito')
 	rol_experto_puntos = fields.Integer('Puntos')
 	rol_experto_detalles_estado = fields.Char('Estado')
-	rol_experto_detalles_texto = fields.Char('Detalle')
+	rol_experto_detalles_texto = fields.Text('Detalle')
 	rol_experto_ingreso = fields.Char('Ingresos')
-	rol_experto_resultado = fields.Char('Resultado')
+	rol_experto_resultado = fields.Selection([('S', 'Superado'), ('N', 'Rechazado'), ('I', 'Incompleto'), ('V', 'Verificar')], 'Resultado')
 	rol_experto_compromiso_mensual = fields.Char('Compromiso mensual')
+	rol_experto_monto_mensual_evaluado = fields.Char('Capacidad de pago evaluada')
 	rol_capacidad_pago_mensual = fields.Float('ROL Experto - Capacidad pago mensual', digits=(16,2))
 	
 	rol_domicilio_ids = fields.One2many('financiera.buro.rol.informe.domicilio', 'partner_id', 'Domicilios')
@@ -66,6 +67,7 @@ class ExtendsResPartnerRol(models.Model):
 			'password': rol_configuracion_id.password,
 			'formato': 'json',
 			'version': 2,
+			'procesar_forzado': 1,
 		}
 		print("MODELOOOOO:: "+str(modelo))
 		if modelo == None:
@@ -81,45 +83,34 @@ class ExtendsResPartnerRol(models.Model):
 
 	@api.one
 	def procesar_respuesta_informe_rol(self, data):
-		print data.keys()
+		# print data.keys()
 		if 'error' in data.keys():
 			print "ERROR"
 			raise ValidationError(data['mensaje'])
 		else:
 			print "EXISTE EL RESULTADO"
-			print data['persona'].keys()
+			# print data['persona'].keys()
 			print "************ experto **************"
-			print data['persona']['experto'].keys()
+			# print data['persona']['experto'].keys()
 			for valor in data['persona']['experto'].keys():
 				print(valor + ":: " + str(data['persona']['experto'][valor]))
-			print "*********** ingresos ***************"
-			print data['persona']['ingresos'].keys()
+			# print "*********** ingresos ***************"
+			# print data['persona']['ingresos'].keys()
 
 			codigo = data['informe']['id']
 
-			# https://informe.riesgoonline.com/api/informes/consultar/:cuit(/:informe)
-			# break
 			informe_existe = False
 			for informe_id in self.buro_rol_informe_ids:
-				print(str(codigo) == informe_id.rol_id)
 				if str(codigo) == informe_id.rol_id:
 					informe_existe = True
 					break
-			if informe_existe:
-				raise ValidationError("El informe ya existe con ROL id " + str(codigo) + ".")
-			else:
+			if not informe_existe:
 				fecha = date.fromtimestamp(data['informe']['fecha_hora'])
-				self.rol_fecha_informe = fecha
 				sexo = None
 				if data['persona']['sexo'] == 'M':
 					sexo = 'masculino'
 				elif data['persona']['sexo'] == 'F':
 					sexo = 'femenino'
-				self.rol_perfil_letra = data['persona']['perfil']['letra']
-				self.rol_perfil_texto = data['persona']['perfil']['texto']
-				print("DATOSSSS")
-				print(data['persona']['clase'])
-				print(data['persona']['fecha_nacimiento'])
 				informe_values = {
 					'partner_id': self.id,
 					'name': data['persona']['nombre'],
@@ -163,30 +154,45 @@ class ExtendsResPartnerRol(models.Model):
 					nuevo_actividad_id = self.env['financiera.buro.rol.informe.actividad'].create(actividad_values)
 					nuevo_informe_id.actividad_ids = [nuevo_actividad_id.id]
 					self.rol_actividad_ids = [nuevo_actividad_id.id]
-				if 'experto' in data['persona'].keys():
-					rol_experto = data['persona']['experto']
-					self.rol_experto_nombre = rol_experto['nombre']
-					self.rol_experto_codigo = rol_experto['codigo']
-					self.rol_experto_tarjeta = rol_experto['tarjeta']
-					self.rol_experto_puntos = rol_experto['puntos']
-					self.rol_experto_detalles_estado = rol_experto['detalles'][0]['estado']
-					self.rol_experto_detalles_texto = rol_experto['detalles'][0]['texto']
-					self.rol_experto_ingreso = rol_experto['ingreso']
-					self.rol_experto_compromiso_mensual = rol_experto['compromiso_mensual']
-					self.rol_experto_resultado = rol_experto['resultado']
-					if self.rol_experto_resultado == 'S':
-						prestamo = rol_experto['prestamo'].replace('.', '').replace(',00', '')
-						self.rol_capacidad_pago_mensual = float(prestamo)
-						rol_configuracion_id = self.company_id.rol_configuracion_id
-						if rol_configuracion_id.asignar_capacidad_pago_mensual:
-							self.capacidad_pago_mensual = self.rol_capacidad_pago_mensual
-					elif self.rol_experto_resultado == 'I':
-						self.rol_capacidad_pago_mensual = 0
-						# Enviar mensaje de perfil incompleto
-					elif self.rol_experto_resultado == 'N':
-						self.rol_capacidad_pago_mensual = 0
-						# Hacer algo
-
+			# Perfil principal y Experto ROL
+			fecha = date.fromtimestamp(data['informe']['fecha_hora'])
+			self.rol_fecha_informe = fecha
+			self.rol_perfil_letra = data['persona']['perfil']['letra']
+			self.rol_perfil_texto = data['persona']['perfil']['texto']
+			
+			if 'experto' in data['persona'].keys():
+				rol_experto = data['persona']['experto']
+				self.rol_experto_nombre = rol_experto['nombre']
+				self.rol_experto_codigo = rol_experto['codigo']
+				self.rol_experto_tarjeta = rol_experto['tarjeta']
+				self.rol_experto_puntos = rol_experto['puntos']
+				rol_experto_detalles_texto = ""
+				for detalles in rol_experto['detalles']:
+					estado = detalles['estado']
+					texto = detalles['texto']
+					rol_experto_detalles_texto += ""+str(estado)+" - "+texto+"<br/>"
+				# rol_experto_detalles_texto += ""
+				self.rol_experto_detalles_texto = rol_experto_detalles_texto
+				self.rol_experto_ingreso = rol_experto['ingreso']
+				self.rol_experto_compromiso_mensual = rol_experto['compromiso_mensual']
+				self.rol_experto_resultado = rol_experto['resultado']
+				self.rol_experto_monto_mensual_evaluado = rol_experto['otorgar_prestamo_max']
+				if self.rol_experto_resultado == 'S':
+					prestamo = rol_experto['prestamo'].replace('.', '').replace(',00', '')
+					self.rol_capacidad_pago_mensual = float(prestamo)
+					rol_configuracion_id = self.company_id.rol_configuracion_id
+					if rol_configuracion_id.asignar_capacidad_pago_mensual:
+						self.capacidad_pago_mensual = self.rol_capacidad_pago_mensual
+				elif self.rol_experto_resultado == 'I':
+					self.rol_capacidad_pago_mensual = 0
+					# Enviar mensaje de perfil incompleto
+				elif self.rol_experto_resultado == 'N':
+					self.rol_capacidad_pago_mensual = 0
+					# Hacer algo
+				elif self.rol_experto_resultado == 'V':
+					# Hacer algo para verificar
+					self.rol_capacidad_pago_mensual = 0
+					pass
 
 class FinancieraBuroRolInforme(models.Model):
 	_name = 'financiera.buro.rol.informe'
@@ -259,24 +265,30 @@ class ExtendsFinancieraPrestamo(models.Model):
 		dias_vovler_a_consultar = rol_configuracion_id.dias_vovler_a_consultar
 		consultar_distinto_modelo = rol_configuracion_id.consultar_distinto_modelo
 		autorizar_automaticamente = rol_configuracion_id.autorizar_automaticamente
-
+		print("dias_vovler_a_consultar:: "+str(dias_vovler_a_consultar))
+		print("consultar_distinto_modelo:: "+str(consultar_distinto_modelo))
+		print("autorizar_automaticamente:: "+str(autorizar_automaticamente))
 		rol_active = rol_configuracion_id.get_rol_active_segun_entidad(self.sucursal_id)[0]
 		rol_modelo = rol_configuracion_id.get_rol_modelo_segun_entidad(self.sucursal_id)[0]
 		if len(self.comercio_id) > 0:
 			rol_active = rol_configuracion_id.get_rol_active_segun_entidad(self.comercio_id)[0]
 			rol_modelo = rol_configuracion_id.get_rol_modelo_segun_entidad(self.comercio_id)[0]
-		
+		print("rol_active:: "+str(rol_active))
+		print("rol_modelo:: "+str(rol_modelo))		
 		rol_dias = False
 		if self.partner_id.rol_fecha_informe != False and dias_vovler_a_consultar > 0:
 			fecha_inicial = datetime.strptime(self.fecha_informe, "%Y-%m-%d")
 			fecha_final = datetime.now()
 			diferencia = fecha_final - fecha_inicial
+			print("diferencia:: "+str(diferencia.days))
 			if diferencia.days >= dias_vovler_a_consultar:
 				rol_dias = True
 		else:
 			rol_dias = True
 		
 		rol_distinto_modelo = consultar_distinto_modelo and (rol_modelo != self.partner_id.rol_experto_codigo)
+		print("rol_dias:: "+str(rol_dias))
+		print("rol_distinto_modelo:: "+str(rol_distinto_modelo))
 		if rol_active and (rol_dias or rol_distinto_modelo):
 			# self.partner_id.solicitar_informe(rol_modelo)
 			self.partner_id.consultar_informe()
