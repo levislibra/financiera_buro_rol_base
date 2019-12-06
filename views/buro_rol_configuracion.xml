@@ -32,7 +32,6 @@
                         <field name="asignar_capacidad_pago_mensual"/>
                         <field name="dias_vovler_a_consultar"/>
                         <field name="consultar_distinto_modelo"/>
-                        <field name="autorizar_automaticamente"/>
                       </group>
                     </group>
                     <group>

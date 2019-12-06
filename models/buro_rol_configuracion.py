@@ -20,7 +20,6 @@ class FinancieraBuroRolConfiguracion(models.Model):
 	asignar_capacidad_pago_mensual = fields.Boolean('Asignar capacidad de pago mensual automaticamente')
 	dias_vovler_a_consultar = fields.Integer('Dias para volver a solicitar informe')
 	consultar_distinto_modelo = fields.Boolean('Solicitar informe con distinto modelo')
-	autorizar_automaticamente = fields.Boolean('Autorizar si hay planes aprobados')
 	modelo_ids = fields.One2many('financiera.buro.rol.configuracion.modelo', 'configuracion_id', 'Modelos Experto segun Entidad')
 	company_id = fields.Many2one('res.company', 'Empresa', required=False, default=lambda self: self.env['res.company']._company_default_get('financiera.buro.rol.configuracion'))
 	

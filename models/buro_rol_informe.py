@@ -92,8 +92,8 @@ class ExtendsResPartnerRol(models.Model):
 			# print data['persona'].keys()
 			print "************ experto **************"
 			# print data['persona']['experto'].keys()
-			for valor in data['persona']['experto'].keys():
-				print(valor + ":: " + str(data['persona']['experto'][valor]))
+			# for valor in data['persona']['experto'].keys():
+			# 	print(valor + ":: " + str(data['persona']['experto'][valor]))
 			# print "*********** ingresos ***************"
 			# print data['persona']['ingresos'].keys()
 
@@ -177,21 +177,18 @@ class ExtendsResPartnerRol(models.Model):
 				self.rol_experto_compromiso_mensual = rol_experto['compromiso_mensual']
 				self.rol_experto_resultado = rol_experto['resultado']
 				self.rol_experto_monto_mensual_evaluado = rol_experto['otorgar_prestamo_max']
+				prestamo = str(rol_experto['prestamo']).replace('.', '').replace(',00', '')
+				self.rol_capacidad_pago_mensual = float(prestamo)
+				rol_configuracion_id = self.company_id.rol_configuracion_id
+				if rol_configuracion_id.asignar_capacidad_pago_mensual:
+					self.capacidad_pago_mensual = self.rol_capacidad_pago_mensual
 				if self.rol_experto_resultado == 'S':
-					prestamo = rol_experto['prestamo'].replace('.', '').replace(',00', '')
-					self.rol_capacidad_pago_mensual = float(prestamo)
-					rol_configuracion_id = self.company_id.rol_configuracion_id
-					if rol_configuracion_id.asignar_capacidad_pago_mensual:
-						self.capacidad_pago_mensual = self.rol_capacidad_pago_mensual
+					pass
 				elif self.rol_experto_resultado == 'I':
-					self.rol_capacidad_pago_mensual = 0
-					# Enviar mensaje de perfil incompleto
+					pass
 				elif self.rol_experto_resultado == 'N':
-					self.rol_capacidad_pago_mensual = 0
-					# Hacer algo
+					pass
 				elif self.rol_experto_resultado == 'V':
-					# Hacer algo para verificar
-					self.rol_capacidad_pago_mensual = 0
 					pass
 
 class FinancieraBuroRolInforme(models.Model):
@@ -264,10 +261,8 @@ class ExtendsFinancieraPrestamo(models.Model):
 		rol_configuracion_id = self.company_id.rol_configuracion_id
 		dias_vovler_a_consultar = rol_configuracion_id.dias_vovler_a_consultar
 		consultar_distinto_modelo = rol_configuracion_id.consultar_distinto_modelo
-		autorizar_automaticamente = rol_configuracion_id.autorizar_automaticamente
 		print("dias_vovler_a_consultar:: "+str(dias_vovler_a_consultar))
 		print("consultar_distinto_modelo:: "+str(consultar_distinto_modelo))
-		print("autorizar_automaticamente:: "+str(autorizar_automaticamente))
 		rol_active = rol_configuracion_id.get_rol_active_segun_entidad(self.sucursal_id)[0]
 		rol_modelo = rol_configuracion_id.get_rol_modelo_segun_entidad(self.sucursal_id)[0]
 		if len(self.comercio_id) > 0:
@@ -277,7 +272,7 @@ class ExtendsFinancieraPrestamo(models.Model):
 		print("rol_modelo:: "+str(rol_modelo))		
 		rol_dias = False
 		if self.partner_id.rol_fecha_informe != False and dias_vovler_a_consultar > 0:
-			fecha_inicial = datetime.strptime(self.fecha_informe, "%Y-%m-%d")
+			fecha_inicial = datetime.strptime(str(self.partner_id.rol_fecha_informe), '%Y-%m-%d %H:%M:%S')
 			fecha_final = datetime.now()
 			diferencia = fecha_final - fecha_inicial
 			print("diferencia:: "+str(diferencia.days))
@@ -293,5 +288,3 @@ class ExtendsFinancieraPrestamo(models.Model):
 			# self.partner_id.solicitar_informe(rol_modelo)
 			self.partner_id.consultar_informe()
 		super(ExtendsFinancieraPrestamo, self).enviar_a_revision()
-		if autorizar_automaticamente:
-			self.enviar_a_autorizado()
