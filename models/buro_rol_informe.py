@@ -69,24 +69,21 @@ class ExtendsResPartnerRol(models.Model):
 			'version': 2,
 			'procesar_forzado': 1,
 		}
-		print("MODELOOOOO:: "+str(modelo))
 		if modelo == None:
 			modelo = rol_configuracion_id.get_rol_modelo_segun_entidad(self.rol_entidad_id)[0]
-		print("Modelo luego de check entidades:: "+str(modelo))
 		if modelo != None:
 			params['procesar_experto'] = modelo
-		# url = 'https://informe.riesgoonline.com/api/informes/solicitar/'
-		# url = url + self.main_id_number
-		# r = requests.get(url, params=params)
-		# data = r.json()
-		# self.procesar_respuesta_informe_rol(data)
+		url = 'https://informe.riesgoonline.com/api/informes/solicitar/'
+		url = url + self.main_id_number
+		r = requests.get(url, params=params)
+		data = r.json()
+		self.procesar_respuesta_informe_rol(data)
 
 	@api.one
 	def procesar_respuesta_informe_rol(self, data):
 		if 'error' in data.keys():
 			raise ValidationError(data['mensaje'])
 		else:
-			# print "EXISTE EL RESULTADO"
 			codigo = data['informe']['id']
 			informe_existe = False
 			for informe_id in self.buro_rol_informe_ids:

@@ -19,7 +19,7 @@
     'version': '0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['base', 'financiera_prestamos'],
+    'depends': ['base', 'financiera_base', 'financiera_prestamos'],
 
     # always loaded
     'data': [
