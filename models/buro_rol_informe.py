@@ -83,22 +83,11 @@ class ExtendsResPartnerRol(models.Model):
 
 	@api.one
 	def procesar_respuesta_informe_rol(self, data):
-		# print data.keys()
 		if 'error' in data.keys():
-			print "ERROR"
 			raise ValidationError(data['mensaje'])
 		else:
-			print "EXISTE EL RESULTADO"
-			# print data['persona'].keys()
-			print "************ experto **************"
-			# print data['persona']['experto'].keys()
-			# for valor in data['persona']['experto'].keys():
-			# 	print(valor + ":: " + str(data['persona']['experto'][valor]))
-			# print "*********** ingresos ***************"
-			# print data['persona']['ingresos'].keys()
-
+			# print "EXISTE EL RESULTADO"
 			codigo = data['informe']['id']
-
 			informe_existe = False
 			for informe_id in self.buro_rol_informe_ids:
 				if str(codigo) == informe_id.rol_id:
@@ -257,34 +246,29 @@ class ExtendsFinancieraPrestamo(models.Model):
 
 	@api.one
 	def enviar_a_revision(self):
-		print("ENVIAR A REVISION")
-		rol_configuracion_id = self.company_id.rol_configuracion_id
-		dias_vovler_a_consultar = rol_configuracion_id.dias_vovler_a_consultar
-		consultar_distinto_modelo = rol_configuracion_id.consultar_distinto_modelo
-		print("dias_vovler_a_consultar:: "+str(dias_vovler_a_consultar))
-		print("consultar_distinto_modelo:: "+str(consultar_distinto_modelo))
-		rol_active = rol_configuracion_id.get_rol_active_segun_entidad(self.sucursal_id)[0]
-		rol_modelo = rol_configuracion_id.get_rol_modelo_segun_entidad(self.sucursal_id)[0]
-		if len(self.comercio_id) > 0:
-			rol_active = rol_configuracion_id.get_rol_active_segun_entidad(self.comercio_id)[0]
-			rol_modelo = rol_configuracion_id.get_rol_modelo_segun_entidad(self.comercio_id)[0]
-		print("rol_active:: "+str(rol_active))
-		print("rol_modelo:: "+str(rol_modelo))		
-		rol_dias = False
-		if self.partner_id.rol_fecha_informe != False and dias_vovler_a_consultar > 0:
-			fecha_inicial = datetime.strptime(str(self.partner_id.rol_fecha_informe), '%Y-%m-%d %H:%M:%S')
-			fecha_final = datetime.now()
-			diferencia = fecha_final - fecha_inicial
-			print("diferencia:: "+str(diferencia.days))
-			if diferencia.days >= dias_vovler_a_consultar:
-				rol_dias = True
-		else:
-			rol_dias = True
-		
-		rol_distinto_modelo = consultar_distinto_modelo and (rol_modelo != self.partner_id.rol_experto_codigo)
-		print("rol_dias:: "+str(rol_dias))
-		print("rol_distinto_modelo:: "+str(rol_distinto_modelo))
-		if rol_active and (rol_dias or rol_distinto_modelo):
-			# self.partner_id.solicitar_informe(rol_modelo)
-			self.partner_id.consultar_informe()
+		if len(self.company_id.rol_configuracion_id) > 0:
+			rol_configuracion_id = self.company_id.rol_configuracion_id
+			rol_active = rol_configuracion_id.get_rol_active_segun_entidad(self.sucursal_id)[0]
+			rol_modelo = rol_configuracion_id.get_rol_modelo_segun_entidad(self.sucursal_id)[0]
+			if len(self.comercio_id) > 0:
+				rol_active = rol_configuracion_id.get_rol_active_segun_entidad(self.comercio_id)[0]
+				rol_modelo = rol_configuracion_id.get_rol_modelo_segun_entidad(self.comercio_id)[0]
+			if rol_active:
+				dias_vovler_a_consultar = rol_configuracion_id.dias_vovler_a_consultar
+				consultar_distinto_modelo = rol_configuracion_id.consultar_distinto_modelo
+				rol_dias = False
+				if self.partner_id.rol_fecha_informe != False and dias_vovler_a_consultar > 0:
+					fecha_inicial = datetime.strptime(str(self.partner_id.rol_fecha_informe), '%Y-%m-%d %H:%M:%S')
+					fecha_final = datetime.now()
+					diferencia = fecha_final - fecha_inicial
+					if diferencia.days >= dias_vovler_a_consultar:
+						rol_dias = True
+				else:
+					rol_dias = True
+				
+				rol_distinto_modelo = consultar_distinto_modelo and (rol_modelo != self.partner_id.rol_experto_codigo)
+				if rol_dias or rol_distinto_modelo:
+					self.partner_id.solicitar_informe(rol_modelo)
+				else:
+					self.partner_id.consultar_informe()
 		super(ExtendsFinancieraPrestamo, self).enviar_a_revision()

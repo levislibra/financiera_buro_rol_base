@@ -23,7 +23,9 @@
 
     # always loaded
     'data': [
-        # 'security/ir.model.access.csv',
+        'security/user_groups.xml',
+        'security/ir.model.access.csv',
+        'security/security.xml',
         'views/buro_rol_configuracion.xml',
         'views/buro_rol_informe.xml',
         'views/extends_res_company.xml',

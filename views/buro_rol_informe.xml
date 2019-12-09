@@ -9,7 +9,7 @@
       <field name="inherit_id" ref="base.view_partner_form"/>
       <field name="arch" type="xml">
         <xpath expr="//page[2]" position='after'>
-          <page string='Buro ROL'>
+          <page string='Buro ROL' groups="financiera_buro_rol_base.manager">
             <button name="consultar_informe" string="Consultar informe" class="oe_highlight oe_read_only" type="object" confirm="Desea consultar el ultimo informe?"/>
             <group>
               <group string="Ultima consulta">
@@ -101,7 +101,7 @@
       <field name="inherit_id" ref="financiera_prestamos.partner_form_inherited"/>
       <field name="arch" type="xml">
         <xpath expr="//sheet/notebook" position="before">
-          <group string="ROL">
+          <group string="ROL" groups="financiera_buro_rol_base.manager">
             <group>
               <field name="rol_entidad_id"/>
               <label for='solicitar_informe'/>

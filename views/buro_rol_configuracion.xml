@@ -20,7 +20,6 @@
             <form string="Configuracion" create="false" delete="false">
                 <header>
                   <button name="actualizar_saldo_informes" string="Actualizar saldo informes" type="object" />
-                  <button name="consulta_sesion" string="Consulta sesion" type="object" />
                 </header>
                 <sheet>
                   <group>
@@ -70,7 +69,7 @@
 
     <!-- Top menu item -->
     
-    <menuitem name="Buro ROL" id="menu_rol" web_icon="financiera_buro_rol_base,static/description/icon.png"/> <!-- groups="financiera_prestamos.manager,financiera_prestamos.user" -->
+    <menuitem name="Buro ROL" id="menu_rol" web_icon="financiera_buro_rol_base,static/description/icon.png" groups="financiera_buro_rol_base.manager"/>
     
     <!-- menu categories -->
     

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <!-- <data noupdate="0"> -->
+        <record id="bna_buro_rol_configuracion_rule" model="ir.rule">
+            <field name="name">ROL Configuracion multi-company</field>
+            <field name="model_id" ref="model_financiera_buro_rol_configuracion"/>
+            <field eval="True" name="global"/>
+            <field name="domain_force">[('company_id','child_of',[user.company_id.id])]</field>
+        </record>
+
+        <record id="bna_buro_rol_configuracion_modelo_rule" model="ir.rule">
+            <field name="name">ROL Configuracion modelo multi-company</field>
+            <field name="model_id" ref="model_financiera_buro_rol_configuracion_modelo"/>
+            <field eval="True" name="global"/>
+            <field name="domain_force">[('company_id','child_of',[user.company_id.id])]</field>
+        </record>
+
+        <record id="bna_buro_rol_configuracion_rule" model="ir.rule">
+            <field name="name">ROL Configuracion multi-company</field>
+            <field name="model_id" ref="model_financiera_buro_rol_configuracion"/>
+            <field eval="True" name="global"/>
+            <field name="domain_force">[('company_id','child_of',[user.company_id.id])]</field>
+        </record>
+
+        <record id="bna_buro_rol_informe_rule" model="ir.rule">
+            <field name="name">ROL Informe multi-company</field>
+            <field name="model_id" ref="model_financiera_buro_rol_informe"/>
+            <field eval="True" name="global"/>
+            <field name="domain_force">[('company_id','child_of',[user.company_id.id])]</field>
+        </record>
+
+        <record id="bna_buro_rol_informe_domicilio_rule" model="ir.rule">
+            <field name="name">ROL Informe domicilio multi-company</field>
+            <field name="model_id" ref="model_financiera_buro_rol_informe_domicilio"/>
+            <field eval="True" name="global"/>
+            <field name="domain_force">[('company_id','child_of',[user.company_id.id])]</field>
+        </record>
+
+        <record id="bna_buro_rol_informe_telefono_rule" model="ir.rule">
+            <field name="name">ROL Informe telefono multi-company</field>
+            <field name="model_id" ref="model_financiera_buro_rol_informe_telefono"/>
+            <field eval="True" name="global"/>
+            <field name="domain_force">[('company_id','child_of',[user.company_id.id])]</field>
+        </record>
+
+        <record id="bna_buro_rol_informe_actividad_rule" model="ir.rule">
+            <field name="name">ROL Informe actividad multi-company</field>
+            <field name="model_id" ref="model_financiera_buro_rol_informe_actividad"/>
+            <field eval="True" name="global"/>
+            <field name="domain_force">[('company_id','child_of',[user.company_id.id])]</field>
+        </record>
+    <!-- </data>  -->
+</openerp>
