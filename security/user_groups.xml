@@ -19,7 +19,11 @@
      <field name="implied_ids" eval="[(4, ref('user'))]"/>
     </record>
 
-    <record id="financiera_base.user" model="res.groups">
+    <record id="financiera_prestamos.user" model="res.groups">
+        <field name="implied_ids" eval="[(4, ref('user'))]"/>
+    </record>
+
+    <record id="base.group_portal" model="res.groups">
         <field name="implied_ids" eval="[(4, ref('user'))]"/>
     </record>
 
