@@ -106,9 +106,9 @@
               <field name="rol_entidad_id"/>
               <label for='solicitar_informe'/>
               <button name="solicitar_informe" string="Solicitar informe" class="oe_highlight oe_read_only" type="object" confirm="Desea solicitar el informe?"/>
-              <field name="rol_fecha_informe"/>
-              <field name="rol_perfil_letra"/>
-              <field name="rol_perfil_texto"/>
+              <field name="rol_fecha_informe" readonly="1"/>
+              <field name="rol_perfil_letra" readonly="1"/>
+              <field name="rol_perfil_texto" readonly="1"/>
               <label for="rol_experto_nombre" string="Modelo evaluado"/>
               <div>
                 <field name="rol_experto_nombre" class="oe_inline" readonly="1"/>|
@@ -128,7 +128,7 @@
             </group>
             <group>
               <field name="rol_experto_detalles_estado" invisible="1"/>
-              <field name="rol_experto_detalles_texto" widget="html" readonly="0"/>
+              <field name="rol_experto_detalles_texto" widget="html" readonly="1"/>
             </group>
           </group>
         </xpath>
