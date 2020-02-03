@@ -29,8 +29,8 @@
                       </group>
                       <group>
                         <field name="asignar_capacidad_pago_mensual"/>
-                        <field name="dias_vovler_a_consultar"/>
-                        <field name="consultar_distinto_modelo"/>
+                        <!-- <field name="dias_vovler_a_consultar"/> -->
+                        <!-- <field name="consultar_distinto_modelo"/> -->
                       </group>
                     </group>
                     <group>
@@ -73,7 +73,7 @@
     
     <!-- menu categories -->
     
-    <menuitem name="Configuracion" id="menu_config" sequence="0" parent="menu_rol"/>
+    <menuitem name="Configuracion" id="menu_config" sequence="20" parent="menu_rol"/>
 
     <menuitem name="Configuracion" id="menu_rol_config_action" sequence="1" parent="menu_config" action="financiera_buro_rol_action"/>
 

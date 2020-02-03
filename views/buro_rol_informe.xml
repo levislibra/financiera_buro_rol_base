@@ -1,6 +1,41 @@
 <openerp>
   <data>
 
+    <!-- Lista de informes solicitados -->
+    <record model="ir.ui.view" id="financiera_rol_tree">
+      <field name="name">financiera.buro.rol.informe.tree</field>
+      <field name="model">financiera.buro.rol.informe</field>
+      <field name="arch" type="xml">
+        <tree create="false" delete="false" edit="false">
+          <field name="create_date" string="Fecha"/>
+          <field name="partner_id"/>
+          <field name="name"/>
+          <field name="cuit"/>
+          <field name="sexo"/>
+          <field name="fecha_nacimiento"/>
+          <field name="perfil_letra"/>
+          <field name="rol_experto_nombre"/>
+          <field name="rol_experto_resultado"/>
+          <field name="capacidad_pago_mensual"/>
+        </tree>
+      </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="financiera_rol_informe_action">
+      <field name="name">Lista de informes solicitados</field>
+      <field name="res_model">financiera.buro.rol.informe</field>
+      <field name="view_mode">tree</field>
+      <field name="view_id" ref="financiera_rol_tree"/>
+    </record>
+
+    <!-- menu categories -->
+    
+    <menuitem name="Informes" id="menu_informes" sequence="10" parent="menu_rol"/>
+
+    <menuitem name="Informes" id="menu_informes_action" sequence="1" parent="menu_informes" action="financiera_rol_informe_action"/>
+
+
+
     <!-- Vista Form Partner Page Buro ROL -->
 
     <record id="partner_rol_form_inherited"  model="ir.ui.view">
@@ -10,7 +45,6 @@
       <field name="arch" type="xml">
         <xpath expr="//page[2]" position='after'>
           <page string='Buro ROL' groups="financiera_buro_rol_base.manager">
-            <button name="consultar_informe" string="Consultar informe" class="oe_highlight oe_read_only" type="object" confirm="Desea consultar el ultimo informe?"/>
             <group>
               <group string="Ultima consulta">
                 <field name="rol_domicilio_ids">
@@ -101,11 +135,14 @@
       <field name="inherit_id" ref="financiera_prestamos.partner_form_inherited"/>
       <field name="arch" type="xml">
         <xpath expr="//sheet/notebook" position="before">
-          <group string="ROL" groups="financiera_buro_rol_base.manager">
+          <group string="Resumen del informe Riesgo Online" groups="financiera_buro_rol_base.manager">
             <group>
-              <field name="rol_entidad_id"/>
-              <label for='solicitar_informe'/>
-              <button name="solicitar_informe" string="Solicitar informe" class="oe_highlight oe_read_only" type="object" confirm="Desea solicitar el informe?"/>
+              <label for='consultar_informe'/>
+              <button name="consultar_informe" string="Solicitar informe" class="oe_highlight oe_read_only" type="object" confirm="Desea solicitar el informe?"/>
+              <field name="rol_modelo"/>
+              <field name="rol_name" readonly="1"/>
+              <field name="rol_cuit" readonly="1"/>
+              <label for="asignar_identidad_rol"/><button name="asignar_identidad_rol" string="Asignar identidad ROL al Cliente" class="oe_highlight oe_read_only" attrs="{'invisible': ['|', ('rol_cuit', '=', False), ('rol_name', '=', False)]}" type="object" confirm="Desea confirmar?"/>
               <field name="rol_fecha_informe" readonly="1"/>
               <field name="rol_perfil_letra" readonly="1"/>
               <field name="rol_perfil_texto" readonly="1"/>
@@ -120,10 +157,6 @@
               <field name="rol_experto_compromiso_mensual" readonly="1"/>
               <field name="rol_experto_resultado" readonly="1"/>
               <field name="rol_experto_monto_mensual_evaluado" attrs="{'invisible': [('rol_experto_resultado', '=', 'S')]}" readonly="1"/>
-              <label for="consultar_informe"/>
-              <div>
-                <button name="consultar_informe" string="Actualizar informe" class="oe_highlight oe_read_only" type="object" confirm="Desea actualizar el perfil segun el ultimo informe?"/>
-              </div>
               <field name="rol_capacidad_pago_mensual" readonly="1"/>
             </group>
             <group>

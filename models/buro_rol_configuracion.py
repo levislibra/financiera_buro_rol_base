@@ -33,7 +33,6 @@ class FinancieraBuroRolConfiguracion(models.Model):
 		data = r.json()
 		self.saldo_informes = int(data['cliente_informes'])
 
-	@api.one
 	def get_rol_modelo_segun_entidad(self, entidad_id):
 		result = None
 		for modelo_id in self.modelo_ids:
@@ -44,7 +43,6 @@ class FinancieraBuroRolConfiguracion(models.Model):
 					raise ValidationError("Riego Online: Tiene dos o mas modelos para la misma entidad.")
 		return result
 
-	@api.one
 	def get_rol_active_segun_entidad(self, entidad_id):
 		result = None
 		for modelo_id in self.modelo_ids:
