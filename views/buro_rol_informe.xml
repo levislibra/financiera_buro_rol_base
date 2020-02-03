@@ -137,8 +137,8 @@
         <xpath expr="//sheet/notebook" position="before">
           <group string="Resumen del informe Riesgo Online" groups="financiera_buro_rol_base.manager">
             <group>
-              <label for='consultar_informe'/>
-              <button name="consultar_informe" string="Solicitar informe" class="oe_highlight oe_read_only" type="object" confirm="Desea solicitar el informe?"/>
+              <label for='button_solicitar_informe'/>
+              <button name="button_solicitar_informe" string="Solicitar informe" class="oe_highlight oe_read_only" type="object" confirm="Desea solicitar el informe?"/>
               <field name="rol_modelo"/>
               <field name="rol_name" readonly="1"/>
               <field name="rol_cuit" readonly="1"/>
