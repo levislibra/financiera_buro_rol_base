@@ -38,8 +38,8 @@ class ExtendsResPartnerRol(models.Model):
 	rol_experto_ingreso = fields.Char('Ingresos')
 	rol_experto_resultado = fields.Selection([('S', 'Superado'), ('N', 'Rechazado'), ('I', 'Incompleto'), ('V', 'Verificar')], 'Resultado')
 	rol_experto_compromiso_mensual = fields.Char('Compromiso mensual')
-	rol_experto_monto_mensual_evaluado = fields.Char('Capacidad de pago evaluada')
-	rol_capacidad_pago_mensual = fields.Float('ROL -Capacidad de pago mensual', digits=(16,2))
+	rol_experto_monto_mensual_evaluado = fields.Char('CP evaluada (obsoleto)')
+	rol_capacidad_pago_mensual = fields.Float('ROL - CPM', digits=(16,2))
 	
 	rol_domicilio_ids = fields.One2many('financiera.buro.rol.informe.domicilio', 'partner_id', 'Domicilios')
 	rol_telefono_ids = fields.One2many('financiera.buro.rol.informe.telefono', 'partner_id', 'Telefonos')
@@ -75,6 +75,7 @@ class ExtendsResPartnerRol(models.Model):
 			params['procesar_experto'] = modelo
 		url = 'https://informe.riesgoonline.com/api/informes/solicitar/'
 		url = url + self.main_id_number
+		print("params:: ", params)
 		r = requests.get(url, params=params)
 		data = r.json()
 		self.procesar_respuesta_informe_rol(data)
@@ -168,14 +169,14 @@ class ExtendsResPartnerRol(models.Model):
 				self.rol_experto_resultado = rol_experto['resultado']
 				nuevo_informe_id.rol_experto_resultado = rol_experto['resultado']
 				self.rol_experto_monto_mensual_evaluado = rol_experto['otorgar_prestamo_max']
-				cpm = str(rol_experto['prestamo']).replace('.', '').replace(',00', '')
-				self.rol_capacidad_pago_mensual = float(cpm)
-				nuevo_informe_id.rol_capacidad_pago_mensual = float(cpm)
+				# cpm = str(rol_experto['prestamo']).replace('.', '').replace(',00', '')
 				rol_configuracion_id = self.company_id.rol_configuracion_id
-				if rol_configuracion_id.asignar_capacidad_pago_mensual:
-					self.capacidad_pago_mensual = self.rol_capacidad_pago_mensual
 				if self.rol_experto_resultado == 'S':
-					pass
+					rol_cpm = rol_configuracion_id.get_capacidad_pago_mensual_segun_perfil(self.rol_perfil_letra)
+					self.rol_capacidad_pago_mensual = rol_cpm
+					nuevo_informe_id.rol_capacidad_pago_mensual = rol_cpm
+					if rol_configuracion_id.asignar_capacidad_pago_mensual:
+						self.capacidad_pago_mensual = rol_cpm
 				elif self.rol_experto_resultado == 'I':
 					pass
 				elif self.rol_experto_resultado == 'N':

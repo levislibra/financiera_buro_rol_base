@@ -18,7 +18,8 @@ class FinancieraBuroRolConfiguracion(models.Model):
 	asignar_capacidad_pago_mensual = fields.Boolean('Asignar capacidad de pago mensual automaticamente')
 	dias_vovler_a_consultar = fields.Integer('Dias para volver a solicitar informe')
 	consultar_distinto_modelo = fields.Boolean('Solicitar informe con distinto modelo')
-	modelo_ids = fields.One2many('financiera.buro.rol.configuracion.modelo', 'configuracion_id', 'Modelos Experto segun Entidad')
+	modelo_ids = fields.One2many('financiera.buro.rol.configuracion.modelo', 'configuracion_id', 'Modelos Experto segun Entidad', domain=['|', ('active', '=', False), ('active', '=', True)])
+	perfil_to_cpm_ids = fields.One2many('financiera.buro.rol.perfil.cpm', 'configuracion_id', 'Asignacion de CPM segun Perfil')
 	company_id = fields.Many2one('res.company', 'Empresa', required=False, default=lambda self: self.env['res.company']._company_default_get('financiera.buro.rol.configuracion'))
 	
 	@api.one
@@ -53,6 +54,14 @@ class FinancieraBuroRolConfiguracion(models.Model):
 					raise ValidationError("Riego Online: Tiene dos o mas modelos para la misma entidad.")
 		return result
 
+	def get_capacidad_pago_mensual_segun_perfil(self, perfil):
+		result = 0
+		for line in self.perfil_to_cpm_ids:
+			if perfil == line.perfil:
+				result = line.capacidad_pago_mensual
+				break
+		return result
+
 
 class FinancieraBuroRolConfiguracionModelo(models.Model):
 	_name = 'financiera.buro.rol.configuracion.modelo'
@@ -63,8 +72,17 @@ class FinancieraBuroRolConfiguracionModelo(models.Model):
 	active = fields.Boolean('Activo')
 	company_id = fields.Many2one('res.company', 'Empresa', required=False, default=lambda self: self.env['res.company']._company_default_get('financiera.buro.rol.configuracion.modelo'))
 
+class FinancieraBuroRolPerfilToCPM(models.Model):
+	_name = 'financiera.buro.rol.perfil.cpm'
+
+	configuracion_id = fields.Many2one('financiera.buro.rol.configuracion', "Configuracion Nosis")
+	perfil = fields.Char('Perfil')
+	capacidad_pago_mensual = fields.Float('Capcidad de pago mensual asignada', digits=(16,2))
+	company_id = fields.Many2one('res.company', 'Empresa', required=False, default=lambda self: self.env['res.company']._company_default_get('financiera.buro.rol.perfil'))
+
 class ExtendsResCompany(models.Model):
 	_name = 'res.company'
 	_inherit = 'res.company'
 
 	rol_configuracion_id = fields.Many2one('financiera.buro.rol.configuracion', 'Configuracion Riesgo Online')
+
