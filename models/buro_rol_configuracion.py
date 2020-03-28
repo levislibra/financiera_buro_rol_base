@@ -37,7 +37,7 @@ class FinancieraBuroRolConfiguracion(models.Model):
 	def get_rol_modelo_segun_entidad(self, entidad_id):
 		result = None
 		for modelo_id in self.modelo_ids:
-			if modelo_id.entidad_id.id == entidad_id.id:
+			if modelo_id.entidad_id.id == entidad_id.id and modelo_id.active == True:
 				if result == None:
 					result = modelo_id.name
 				else:

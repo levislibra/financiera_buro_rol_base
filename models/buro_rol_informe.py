@@ -46,6 +46,35 @@ class ExtendsResPartnerRol(models.Model):
 	rol_actividad_ids = fields.One2many('financiera.buro.rol.informe.actividad', 'partner_id', 'Actividad comercial')
 	rol_fecha_informe = fields.Datetime('Fecha del informe')
 
+	def buscar_persona(self):
+		ret = None
+		rol_configuracion_id = self.company_id.rol_configuracion_id
+		params = {
+			'username': rol_configuracion_id.usuario,
+			'password': rol_configuracion_id.password,
+			'version': 2,
+		}
+
+		url = 'https://informe.riesgoonline.com/api/informes?buscar='
+		url = url + self.main_id_number
+		r = requests.get(url, params=params)
+		data = r.json()
+		if 'error' in data.keys():
+			raise ValidationError(data['mensaje'])
+		else:
+			resultado = data['resultado']
+			len_resultado = len(data['resultado'])
+			mejor_nombre_correcto = 0
+			for persona in resultado:
+				actual_nombre_correcto = 0
+				for nombre in self.name.upper().split():
+					if nombre in persona['nombre'].upper():
+						actual_nombre_correcto += 1
+				if actual_nombre_correcto >= mejor_nombre_correcto:
+					mejor_nombre_correcto = actual_nombre_correcto
+					ret = persona['cuit']
+		return ret
+
 	@api.one
 	def consultar_informe(self):
 		rol_configuracion_id = self.company_id.rol_configuracion_id
@@ -55,11 +84,12 @@ class ExtendsResPartnerRol(models.Model):
 			'formato': 'json',
 			'version': 2,
 		}
+		cuit = self.buscar_persona()
 		url = 'https://informe.riesgoonline.com/api/informes/consultar/'
-		url = url + self.main_id_number
+		url = url + cuit
 		r = requests.get(url, params=params)
 		data = r.json()
-		self.procesar_respuesta_informe_rol(data)
+		self.procesar_respuesta_informe_rol(data, cuit)
 
 	@api.one
 	def solicitar_informe(self, modelo=None):
@@ -73,15 +103,15 @@ class ExtendsResPartnerRol(models.Model):
 		}
 		if modelo != None:
 			params['procesar_experto'] = modelo
+		cuit = self.buscar_persona()
 		url = 'https://informe.riesgoonline.com/api/informes/solicitar/'
-		url = url + self.main_id_number
-		print("params:: ", params)
+		url = url + cuit
 		r = requests.get(url, params=params)
 		data = r.json()
-		self.procesar_respuesta_informe_rol(data)
+		self.procesar_respuesta_informe_rol(data, cuit)
 
 	@api.one
-	def procesar_respuesta_informe_rol(self, data):
+	def procesar_respuesta_informe_rol(self, data, cuit):
 		if 'error' in data.keys():
 			raise ValidationError(data['mensaje'])
 		else:
@@ -89,12 +119,12 @@ class ExtendsResPartnerRol(models.Model):
 			fecha = date.fromtimestamp(data['informe']['fecha_hora'])
 			sexo = None
 			self.rol_name = data['persona']['nombre']
-			# self.rol_cuit = data['persona']['cuit']
+			self.rol_cuit = cuit
 			informe_values = {
 				'partner_id': self.id,
 				'name': data['persona']['nombre'],
 				'rol_id': codigo,
-				# 'cuit': data['persona']['cuit'],
+				'cuit': cuit,
 				'sexo': data['persona']['sexo'],
 				'clase': data['persona']['clase'],
 				'fecha_nacimiento': data['persona']['fecha_nacimiento'],
@@ -186,7 +216,13 @@ class ExtendsResPartnerRol(models.Model):
 
 	@api.one
 	def button_solicitar_informe(self):
-		self.solicitar_informe(self.rol_modelo)
+		rol_configuracion_id = self.company_id.rol_configuracion_id
+		entidad_id = self.env.user.entidad_login_id
+		rol_modelo = rol_configuracion_id.get_rol_modelo_segun_entidad(entidad_id)
+		if rol_modelo != None:
+			self.solicitar_informe(rol_modelo)
+		else:
+			raise ValidationError("Falta configurar un modelo a evaluar para la entidad "+entidad_id.name+".")
 
 	@api.one
 	def asignar_identidad_rol(self):
@@ -200,6 +236,7 @@ class ExtendsResPartnerRol(models.Model):
 class FinancieraBuroRolInforme(models.Model):
 	_name = 'financiera.buro.rol.informe'
 
+	_order = "id desc"
 	partner_id = fields.Many2one('res.partner', 'Cliente')
 	name = fields.Char('Nombre')
 	rol_id = fields.Char('Rol id')
