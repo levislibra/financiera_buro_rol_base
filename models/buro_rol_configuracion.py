@@ -16,6 +16,7 @@ class FinancieraBuroRolConfiguracion(models.Model):
 	saldo_informes = fields.Integer('Saldo Informes')
 	
 	asignar_capacidad_pago_mensual = fields.Boolean('Asignar capacidad de pago mensual automaticamente')
+	asignar_partner_tipo_segun_perfil = fields.Boolean('Asignar tipo de cliente segun perfil automaticamente')
 	dias_vovler_a_consultar = fields.Integer('Dias para volver a solicitar informe')
 	consultar_distinto_modelo = fields.Boolean('Solicitar informe con distinto modelo')
 	modelo_ids = fields.One2many('financiera.buro.rol.configuracion.modelo', 'configuracion_id', 'Modelos Experto segun Entidad', domain=['|', ('active', '=', False), ('active', '=', True)])
@@ -62,6 +63,13 @@ class FinancieraBuroRolConfiguracion(models.Model):
 				break
 		return result
 
+	def get_cliente_tipo_segun_perfil(self, perfil):
+		result = None
+		for line in self.perfil_to_cpm_ids:
+			if perfil == line.perfil:
+				result = line.partner_tipo_id
+				break
+		return result
 
 class FinancieraBuroRolConfiguracionModelo(models.Model):
 	_name = 'financiera.buro.rol.configuracion.modelo'
@@ -78,6 +86,7 @@ class FinancieraBuroRolPerfilToCPM(models.Model):
 	configuracion_id = fields.Many2one('financiera.buro.rol.configuracion', "Configuracion Nosis")
 	perfil = fields.Char('Perfil')
 	capacidad_pago_mensual = fields.Float('Capcidad de pago mensual asignada', digits=(16,2))
+	partner_tipo_id = fields.Many2one('financiera.partner.tipo', 'Tipo de cliente')
 	company_id = fields.Many2one('res.company', 'Empresa', required=False, default=lambda self: self.env['res.company']._company_default_get('financiera.buro.rol.perfil'))
 
 class ExtendsResCompany(models.Model):

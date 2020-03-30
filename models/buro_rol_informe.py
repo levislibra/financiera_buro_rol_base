@@ -202,6 +202,9 @@ class ExtendsResPartnerRol(models.Model):
 				# cpm = str(rol_experto['prestamo']).replace('.', '').replace(',00', '')
 				rol_configuracion_id = self.company_id.rol_configuracion_id
 				if self.rol_experto_resultado == 'S':
+					if rol_configuracion_id.asignar_partner_tipo_segun_perfil:
+						rol_partner_tipo_id = rol_configuracion_id.get_cliente_tipo_segun_perfil(self.rol_perfil_letra)
+						self.partner_tipo_id = rol_partner_tipo_id.id
 					rol_cpm = rol_configuracion_id.get_capacidad_pago_mensual_segun_perfil(self.rol_perfil_letra)
 					self.rol_capacidad_pago_mensual = rol_cpm
 					nuevo_informe_id.rol_capacidad_pago_mensual = rol_cpm

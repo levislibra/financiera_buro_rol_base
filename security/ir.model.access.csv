@@ -5,6 +5,9 @@ user_financiera_buro_rol_configuracion,financiera.buro.rol.configuracion,model_f
 manager_financiera_buro_rol_configuracion_modelo,financiera.buro.rol.configuracion.modelo,model_financiera_buro_rol_configuracion_modelo,financiera_buro_rol_base.manager,1,1,1,1
 user_financiera_buro_rol_configuracion_modelo,financiera.buro.rol.configuracion.modelo,model_financiera_buro_rol_configuracion_modelo,financiera_buro_rol_base.user,1,0,0,0
 
+manager_financiera_buro_rol_perfil_cpm,financiera.buro.rol.perfil.cpm,model_financiera_buro_rol_perfil_cpm,financiera_buro_rol_base.manager,1,1,1,1
+user_financiera_buro_rol_perfil_cpm,financiera.buro.rol.perfil.cpm,model_financiera_buro_rol_perfil_cpm,financiera_buro_rol_base.user,1,0,0,0
+
 manager_financiera_buro_rol_informe,financiera.buro.rol.informe,model_financiera_buro_rol_informe,financiera_buro_rol_base.manager,1,1,1,1
 user_financiera_buro_rol_informe,financiera.buro.rol.informe,model_financiera_buro_rol_informe,financiera_buro_rol_base.user,1,1,1,1
 
