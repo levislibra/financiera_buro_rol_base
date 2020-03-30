@@ -40,6 +40,7 @@ class ExtendsResPartnerRol(models.Model):
 	rol_experto_compromiso_mensual = fields.Char('Compromiso mensual')
 	rol_experto_monto_mensual_evaluado = fields.Char('CP evaluada (obsoleto)')
 	rol_capacidad_pago_mensual = fields.Float('ROL - CPM', digits=(16,2))
+	rol_partner_tipo_id = fields.Many2one('financiera.partner.tipo', 'ROL - Tipo de cliente')
 	
 	rol_domicilio_ids = fields.One2many('financiera.buro.rol.informe.domicilio', 'partner_id', 'Domicilios')
 	rol_telefono_ids = fields.One2many('financiera.buro.rol.informe.telefono', 'partner_id', 'Telefonos')
@@ -202,20 +203,22 @@ class ExtendsResPartnerRol(models.Model):
 				# cpm = str(rol_experto['prestamo']).replace('.', '').replace(',00', '')
 				rol_configuracion_id = self.company_id.rol_configuracion_id
 				if self.rol_experto_resultado == 'S':
+					rol_partner_tipo_id = rol_configuracion_id.get_cliente_tipo_segun_perfil(self.rol_perfil_letra)
+					self.rol_partner_tipo_id = rol_partner_tipo_id.id
 					if rol_configuracion_id.asignar_partner_tipo_segun_perfil:
-						rol_partner_tipo_id = rol_configuracion_id.get_cliente_tipo_segun_perfil(self.rol_perfil_letra)
 						self.partner_tipo_id = rol_partner_tipo_id.id
 					rol_cpm = rol_configuracion_id.get_capacidad_pago_mensual_segun_perfil(self.rol_perfil_letra)
 					self.rol_capacidad_pago_mensual = rol_cpm
 					nuevo_informe_id.rol_capacidad_pago_mensual = rol_cpm
 					if rol_configuracion_id.asignar_capacidad_pago_mensual:
 						self.capacidad_pago_mensual = rol_cpm
-				elif self.rol_experto_resultado == 'I':
-					pass
-				elif self.rol_experto_resultado == 'N':
-					pass
-				elif self.rol_experto_resultado == 'V':
-					pass
+				elif self.rol_experto_resultado in ('I', 'N', 'V'):
+					self.rol_partner_tipo_id = None
+					self.rol_capacidad_pago_mensual = 0
+					if rol_configuracion_id.asignar_partner_tipo_segun_perfil:
+						self.partner_tipo_id = None
+					if rol_configuracion_id.asignar_capacidad_pago_mensual:
+						self.capacidad_pago_mensual = 0
 
 	@api.one
 	def button_solicitar_informe(self):
@@ -307,28 +310,13 @@ class ExtendsFinancieraPrestamo(models.Model):
 	def enviar_a_revision(self):
 		if len(self.company_id.rol_configuracion_id) > 0:
 			rol_configuracion_id = self.company_id.rol_configuracion_id
-			rol_active = rol_configuracion_id.get_rol_active_segun_entidad(self.sucursal_id)
-			rol_modelo = rol_configuracion_id.get_rol_modelo_segun_entidad(self.sucursal_id)
-			if len(self.comercio_id) > 0:
-				rol_active = rol_configuracion_id.get_rol_active_segun_entidad(self.comercio_id)
-				rol_modelo = rol_configuracion_id.get_rol_modelo_segun_entidad(self.comercio_id)
-			if rol_active:
-				self.partner_id.solicitar_informe(rol_modelo)
-				# dias_vovler_a_consultar = rol_configuracion_id.dias_vovler_a_consultar
-				# consultar_distinto_modelo = rol_configuracion_id.consultar_distinto_modelo
-				# rol_dias = False
-				# if self.partner_id.rol_fecha_informe != False and dias_vovler_a_consultar > 0:
-				# 	fecha_inicial = datetime.strptime(str(self.partner_id.rol_fecha_informe), '%Y-%m-%d %H:%M:%S')
-				# 	fecha_final = datetime.now()
-				# 	diferencia = fecha_final - fecha_inicial
-				# 	if diferencia.days >= dias_vovler_a_consultar:
-				# 		rol_dias = True
-				# else:
-				# 	rol_dias = True
-				
-				# rol_distinto_modelo = consultar_distinto_modelo and (rol_modelo != self.partner_id.rol_experto_codigo)
-				# if rol_dias or rol_distinto_modelo:
-				# 	self.partner_id.solicitar_informe(rol_modelo)
-				# else:
-				# 	self.partner_id.consultar_informe()
+			if rol_configuracion_id.solicitar_informe_enviar_a_revision:
+				rol_active = rol_configuracion_id.get_rol_active_segun_entidad(self.sucursal_id)
+				rol_modelo = rol_configuracion_id.get_rol_modelo_segun_entidad(self.sucursal_id)
+				if len(self.comercio_id) > 0:
+					rol_active = rol_configuracion_id.get_rol_active_segun_entidad(self.comercio_id)
+					rol_modelo = rol_configuracion_id.get_rol_modelo_segun_entidad(self.comercio_id)
+				if rol_active:
+					# self.partner_id.solicitar_informe(rol_modelo)
+					self.partner_id.consultar_informe()
 		super(ExtendsFinancieraPrestamo, self).enviar_a_revision()

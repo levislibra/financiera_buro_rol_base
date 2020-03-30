@@ -31,9 +31,9 @@
                         <field name="saldo_informes" readonly="1"/>
                       </group>
                       <group>
+                        <field name="solicitar_informe_enviar_a_revision"/>
                         <field name="asignar_capacidad_pago_mensual"/>
                         <field name="asignar_partner_tipo_segun_perfil"/>
-                        <!-- <field name="consultar_distinto_modelo"/> -->
                       </group>
                   </group>
                   <group>

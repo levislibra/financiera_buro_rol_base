@@ -158,8 +158,9 @@
               <field name="rol_experto_ingreso" readonly="1"/>
               <field name="rol_experto_compromiso_mensual" readonly="1"/>
               <field name="rol_experto_resultado" readonly="1"/>
-              <field name="rol_experto_monto_mensual_evaluado" attrs="{'invisible': [('rol_experto_resultado', '=', 'S')]}" readonly="1"/>
+              <!-- <field name="rol_experto_monto_mensual_evaluado" attrs="{'invisible': [('rol_experto_resultado', '=', 'S')]}" readonly="1"/> -->
               <field name="rol_capacidad_pago_mensual" readonly="1"/>
+              <field name="rol_partner_tipo_id" readonly="1"/>
             </group>
             <group>
               <field name="rol_experto_detalles_estado" invisible="1"/>

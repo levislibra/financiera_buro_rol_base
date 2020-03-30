@@ -15,6 +15,7 @@ class FinancieraBuroRolConfiguracion(models.Model):
 	password = fields.Char('Password')
 	saldo_informes = fields.Integer('Saldo Informes')
 	
+	solicitar_informe_enviar_a_revision = fields.Boolean('Consultar informe al enviar a revision')
 	asignar_capacidad_pago_mensual = fields.Boolean('Asignar capacidad de pago mensual automaticamente')
 	asignar_partner_tipo_segun_perfil = fields.Boolean('Asignar tipo de cliente segun perfil automaticamente')
 	dias_vovler_a_consultar = fields.Integer('Dias para volver a solicitar informe')
@@ -48,7 +49,7 @@ class FinancieraBuroRolConfiguracion(models.Model):
 	def get_rol_active_segun_entidad(self, entidad_id):
 		result = None
 		for modelo_id in self.modelo_ids:
-			if modelo_id.entidad_id.id == entidad_id.id:
+			if modelo_id.entidad_id.id == entidad_id.id and modelo_id.active == True:
 				if result == None:
 					result = modelo_id.active
 				else:
