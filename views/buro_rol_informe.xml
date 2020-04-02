@@ -8,6 +8,7 @@
       <field name="arch" type="xml">
         <tree create="false" delete="false" edit="false">
           <field name="create_date" string="Fecha"/>
+          <field name="tipo"/>
           <field name="partner_id"/>
           <field name="name"/>
           <field name="cuit"/>

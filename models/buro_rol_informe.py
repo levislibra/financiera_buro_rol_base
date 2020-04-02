@@ -90,7 +90,7 @@ class ExtendsResPartnerRol(models.Model):
 		url = url + cuit
 		r = requests.get(url, params=params)
 		data = r.json()
-		self.procesar_respuesta_informe_rol(data, cuit)
+		self.procesar_respuesta_informe_rol(data, cuit, 'consulta')
 
 	@api.one
 	def solicitar_informe(self, modelo=None):
@@ -109,10 +109,10 @@ class ExtendsResPartnerRol(models.Model):
 		url = url + cuit
 		r = requests.get(url, params=params)
 		data = r.json()
-		self.procesar_respuesta_informe_rol(data, cuit)
+		self.procesar_respuesta_informe_rol(data, cuit, 'solicitud')
 
 	@api.one
-	def procesar_respuesta_informe_rol(self, data, cuit):
+	def procesar_respuesta_informe_rol(self, data, cuit, tipo):
 		if 'error' in data.keys():
 			raise ValidationError(data['mensaje'])
 		else:
@@ -135,6 +135,7 @@ class ExtendsResPartnerRol(models.Model):
 			}
 			nuevo_informe_id = self.env['financiera.buro.rol.informe'].create(informe_values)
 			self.buro_rol_informe_ids = [nuevo_informe_id.id]
+			nuevo_informe_id.tipo = tipo
 			for data_domicilio in data['persona']['domicilios']:
 				for domicilio_id in self.rol_domicilio_ids:
 					domicilio_id.unlink()
@@ -212,6 +213,7 @@ class ExtendsResPartnerRol(models.Model):
 					nuevo_informe_id.rol_capacidad_pago_mensual = rol_cpm
 					if rol_configuracion_id.asignar_capacidad_pago_mensual:
 						self.capacidad_pago_mensual = rol_cpm
+						nuevo_informe_id.capacidad_pago_mensual = rol_cpm
 				elif self.rol_experto_resultado in ('I', 'N', 'V'):
 					self.rol_partner_tipo_id = None
 					self.rol_capacidad_pago_mensual = 0
@@ -219,16 +221,27 @@ class ExtendsResPartnerRol(models.Model):
 						self.partner_tipo_id = None
 					if rol_configuracion_id.asignar_capacidad_pago_mensual:
 						self.capacidad_pago_mensual = 0
+						nuevo_informe_id.capacidad_pago_mensual = 0
+			else:
+				self.rol_experto_nombre = False
+				self.rol_experto_ingreso = False
+				self.rol_experto_compromiso_mensual = False
+				self.rol_experto_resultado = False
+				self.rol_capacidad_pago_mensual = 0
+				self.rol_partner_tipo_id = False
 
-	@api.one
+	# @api.one
 	def button_solicitar_informe(self):
 		rol_configuracion_id = self.company_id.rol_configuracion_id
 		entidad_id = self.env.user.entidad_login_id
 		rol_modelo = rol_configuracion_id.get_rol_modelo_segun_entidad(entidad_id)
 		if rol_modelo != None:
 			self.solicitar_informe(rol_modelo)
+			# para test
+			# self.consultar_informe()
 		else:
 			raise ValidationError("Falta configurar un modelo a evaluar para la entidad "+entidad_id.name+".")
+		return True
 
 	@api.one
 	def asignar_identidad_rol(self):
@@ -238,6 +251,8 @@ class ExtendsResPartnerRol(models.Model):
 			self.name = self.rol_name
 		self.confirm()
 
+	def get_rol_experto_resultado(self):
+		return self.rol_experto_resultado
 
 class FinancieraBuroRolInforme(models.Model):
 	_name = 'financiera.buro.rol.informe'
@@ -262,6 +277,10 @@ class FinancieraBuroRolInforme(models.Model):
 		('H', 'H. Perfil Nulo'),
 		('I', 'I. Perfil Incompleto')],
 		'Perfil')
+	tipo = fields.Selection([
+		('consulta', 'Consulta'),
+		('solicitud', 'Solicitud')],
+		'Tipo')
 	perfil_texto = fields.Char('Detalle')
 	rol_experto_resultado = fields.Selection([('S', 'Superado'), ('N', 'Rechazado'), ('I', 'Incompleto'), ('V', 'Verificar')], 'Resultado')
 	rol_experto_nombre = fields.Char('Modelo evaluado')
@@ -317,6 +336,7 @@ class ExtendsFinancieraPrestamo(models.Model):
 					rol_active = rol_configuracion_id.get_rol_active_segun_entidad(self.comercio_id)
 					rol_modelo = rol_configuracion_id.get_rol_modelo_segun_entidad(self.comercio_id)
 				if rol_active:
-					# self.partner_id.solicitar_informe(rol_modelo)
-					self.partner_id.consultar_informe()
+					self.partner_id.solicitar_informe(rol_modelo)
+					# para hacer test!
+					# self.partner_id.consultar_informe()
 		super(ExtendsFinancieraPrestamo, self).enviar_a_revision()
