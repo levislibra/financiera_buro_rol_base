@@ -76,7 +76,6 @@ class ExtendsResPartnerRol(models.Model):
 					ret = persona['cuit']
 		return ret
 
-	@api.one
 	def consultar_informe(self):
 		rol_configuracion_id = self.company_id.rol_configuracion_id
 		params = {
@@ -90,28 +89,31 @@ class ExtendsResPartnerRol(models.Model):
 		url = url + cuit
 		r = requests.get(url, params=params)
 		data = r.json()
-		self.procesar_respuesta_informe_rol(data, cuit, 'consulta')
+		ret = self.procesar_respuesta_informe_rol(data, cuit, 'consulta')
+		return ret
 
-	@api.one
-	def solicitar_informe(self, modelo=None):
+	def solicitar_informe(self):
+		ret = False
 		rol_configuracion_id = self.company_id.rol_configuracion_id
-		params = {
-			'username': rol_configuracion_id.usuario,
-			'password': rol_configuracion_id.password,
-			'formato': 'json',
-			'version': 2,
-			'procesar_forzado': 1,
-		}
-		if modelo != None:
-			params['procesar_experto'] = modelo
-		cuit = self.buscar_persona()
-		url = 'https://informe.riesgoonline.com/api/informes/solicitar/'
-		url = url + cuit
-		r = requests.get(url, params=params)
-		data = r.json()
-		self.procesar_respuesta_informe_rol(data, cuit, 'solicitud')
+		entidad_id = self.env.user.entidad_login_id
+		rol_modelo = rol_configuracion_id.get_rol_modelo_segun_entidad(entidad_id)
+		if rol_modelo != None:
+			params = {
+				'username': rol_configuracion_id.usuario,
+				'password': rol_configuracion_id.password,
+				'formato': 'json',
+				'version': 2,
+				'procesar_forzado': 1,
+			}
+			params['procesar_experto'] = rol_modelo
+			cuit = self.buscar_persona()
+			url = 'https://informe.riesgoonline.com/api/informes/solicitar/'
+			url = url + cuit
+			r = requests.get(url, params=params)
+			data = r.json()
+			ret = self.procesar_respuesta_informe_rol(data, cuit, 'solicitud')
+		return ret
 
-	@api.one
 	def procesar_respuesta_informe_rol(self, data, cuit, tipo):
 		if 'error' in data.keys():
 			raise ValidationError(data['mensaje'])
@@ -229,19 +231,12 @@ class ExtendsResPartnerRol(models.Model):
 				self.rol_experto_resultado = False
 				self.rol_capacidad_pago_mensual = 0
 				self.rol_partner_tipo_id = False
+		return self.rol_experto_resultado
 
-	# @api.one
 	def button_solicitar_informe(self):
-		rol_configuracion_id = self.company_id.rol_configuracion_id
-		entidad_id = self.env.user.entidad_login_id
-		rol_modelo = rol_configuracion_id.get_rol_modelo_segun_entidad(entidad_id)
-		if rol_modelo != None:
-			self.solicitar_informe(rol_modelo)
-			# para test
-			# self.consultar_informe()
-		else:
+		ret = self.solicitar_informe()
+		if ret == False:
 			raise ValidationError("Falta configurar un modelo a evaluar para la entidad "+entidad_id.name+".")
-		return True
 
 	@api.one
 	def asignar_identidad_rol(self):
@@ -251,7 +246,7 @@ class ExtendsResPartnerRol(models.Model):
 			self.name = self.rol_name
 		self.confirm()
 
-	def get_rol_experto_resultado(self):
+	def consultar_resultado_informe_rol(self):
 		return self.rol_experto_resultado
 
 class FinancieraBuroRolInforme(models.Model):
