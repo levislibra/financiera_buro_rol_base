@@ -84,11 +84,11 @@ class FinancieraBuroRolConfiguracionModelo(models.Model):
 class FinancieraBuroRolPerfilToCPM(models.Model):
 	_name = 'financiera.buro.rol.perfil.cpm'
 
-	configuracion_id = fields.Many2one('financiera.buro.rol.configuracion', "Configuracion Nosis")
+	configuracion_id = fields.Many2one('financiera.buro.rol.configuracion', "Configuracion ROL")
 	perfil = fields.Char('Perfil')
 	capacidad_pago_mensual = fields.Float('Capcidad de pago mensual asignada', digits=(16,2))
 	partner_tipo_id = fields.Many2one('financiera.partner.tipo', 'Tipo de cliente')
-	company_id = fields.Many2one('res.company', 'Empresa', required=False, default=lambda self: self.env['res.company']._company_default_get('financiera.buro.rol.perfil'))
+	company_id = fields.Many2one('res.company', 'Empresa', required=False, default=lambda self: self.env['res.company']._company_default_get('financiera.buro.rol.perfil.cpm'))
 
 class ExtendsResCompany(models.Model):
 	_name = 'res.company'
