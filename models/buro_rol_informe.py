@@ -76,6 +76,10 @@ class ExtendsResPartnerRol(models.Model):
 					ret = persona['cuit']
 		return ret
 
+	@api.one
+	def button_consultar_informe(self):
+		self.consultar_informe()
+
 	def consultar_informe(self):
 		rol_configuracion_id = self.company_id.rol_configuracion_id
 		params = {
@@ -233,6 +237,7 @@ class ExtendsResPartnerRol(models.Model):
 				self.rol_partner_tipo_id = False
 		return self.rol_experto_resultado
 
+	@api.one
 	def button_solicitar_informe(self):
 		ret = self.solicitar_informe()
 		if ret == False:

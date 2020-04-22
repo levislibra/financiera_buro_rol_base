@@ -79,7 +79,7 @@
 
     <!-- Top menu item -->
     
-    <menuitem name="Buro ROL" id="menu_rol" web_icon="financiera_buro_rol_base,static/description/icon.png" groups="financiera_buro_rol_base.manager"/>
+    <menuitem name="Riesgo Online" id="menu_rol" web_icon="financiera_buro_rol_base,static/description/icon.png" groups="financiera_buro_rol_base.manager"/>
     
     <!-- menu categories -->
     
