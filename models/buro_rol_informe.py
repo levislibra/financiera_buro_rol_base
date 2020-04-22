@@ -81,6 +81,7 @@ class ExtendsResPartnerRol(models.Model):
 		self.consultar_informe()
 
 	def consultar_informe(self):
+		ret = None
 		rol_configuracion_id = self.company_id.rol_configuracion_id
 		params = {
 			'username': rol_configuracion_id.usuario,
@@ -89,11 +90,12 @@ class ExtendsResPartnerRol(models.Model):
 			'version': 2,
 		}
 		cuit = self.buscar_persona()
-		url = 'https://informe.riesgoonline.com/api/informes/consultar/'
-		url = url + cuit
-		r = requests.get(url, params=params)
-		data = r.json()
-		ret = self.procesar_respuesta_informe_rol(data, cuit, 'consulta')
+		if cuit != None:
+			url = 'https://informe.riesgoonline.com/api/informes/consultar/'
+			url = url + cuit
+			r = requests.get(url, params=params)
+			data = r.json()
+			ret = self.procesar_respuesta_informe_rol(data, cuit, 'consulta')
 		return ret
 
 	def solicitar_informe(self):
@@ -239,9 +241,7 @@ class ExtendsResPartnerRol(models.Model):
 
 	@api.one
 	def button_solicitar_informe(self):
-		ret = self.solicitar_informe()
-		if ret == False:
-			raise ValidationError("Falta configurar un modelo a evaluar para la entidad "+entidad_id.name+".")
+		self.solicitar_informe()
 
 	@api.one
 	def asignar_identidad_rol(self):
