@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 {
-    'name': "Buro ROL - Base",
+    'name': "Riesgo Online",
 
     'summary': """
         Modulo base para conectar con buro Riesgoonline.""",

@@ -135,42 +135,144 @@
       <field name="model">res.partner</field>
       <field name="inherit_id" ref="financiera_prestamos.partner_form_inherited"/>
       <field name="arch" type="xml">
-        <xpath expr="//sheet/notebook" position="before">
-          <group string="Resumen del informe Riesgo Online" groups="financiera_buro_rol_base.manager">
-            <group>
-              <label for='button_solicitar_informe'/>
-              <button name="button_solicitar_informe" string="Solicitar informe" class="oe_highlight oe_read_only" type="object" confirm="Desea solicitar el informe?"/>
-              <label for='button_consultar_informe'/>
-              <button name="button_consultar_informe" string="Consultar informe" class="oe_highlight oe_read_only" type="object" confirm="Desea consultar el informe?"/>
-              <!-- <field name="rol_modelo"/> -->
-              <field name="rol_name" readonly="1"/>
-              <field name="rol_cuit" readonly="1"/>
-              <label for="asignar_identidad_rol"/><button name="asignar_identidad_rol" string="Asignar identidad ROL al Cliente" class="oe_highlight oe_read_only" attrs="{'invisible': ['|', ('rol_cuit', '=', False), ('rol_name', '=', False)]}" type="object" confirm="Desea confirmar?"/>
-              <field name="rol_fecha_informe" readonly="1"/>
-              <field name="rol_perfil_letra" readonly="1"/>
+        <xpath expr="//group[@name='risk']" position="inside">
+          <group string="Riesgo Online" col="1" style="background-color: #E6E6E6">
+            <group col="1" style="background-color: #E6E6E6">
+              <group col="2">
+                <field name="rol_fecha_informe" readonly="1"/>
+                <field name="rol_perfil_letra" readonly="1"/>
+              </group>
               <field name="rol_perfil_texto" readonly="1"/>
-              <label for="rol_experto_nombre" string="Modelo evaluado"/>
-              <div>
-                <field name="rol_experto_nombre" class="oe_inline" readonly="1"/>|
-                <field name="rol_experto_codigo" class="oe_inline" readonly="1"/>
-              </div>
-              <field name="rol_experto_tarjeta" invisible="1"/>
-              <field name="rol_experto_puntos" invisible="1"/>
-              <field name="rol_experto_ingreso" readonly="1"/>
-              <field name="rol_experto_compromiso_mensual" readonly="1"/>
-              <field name="rol_experto_resultado" readonly="1"/>
-              <!-- <field name="rol_experto_monto_mensual_evaluado" attrs="{'invisible': [('rol_experto_resultado', '=', 'S')]}" readonly="1"/> -->
-              <field name="rol_capacidad_pago_mensual" readonly="1"/>
-              <field name="rol_partner_tipo_id" readonly="1"/>
-            </group>
-            <group>
-              <field name="rol_experto_detalles_estado" invisible="1"/>
-              <field name="rol_experto_detalles_texto" widget="html" readonly="1"/>
+              <group col="2">
+                <group col="1">
+                  <field name="rol_name" readonly="1"/>
+                </group>
+                <group col="1">
+                  <field name="rol_cuit" readonly="1"/>
+                </group>
+              </group>
+              <button name="asignar_identidad_rol" string="Asignar identidad ROL al Cliente" attrs="{'invisible': ['|', ('rol_cuit', '=', False), ('rol_name', '=', False)]}" type="object" confirm="Desea confirmar?"/>
+              <field name="rol_domicilio" readonly="1"/>
+              <group col="2">
+                <group col="1">
+                  <label for="rol_experto_nombre" string="Modelo evaluado"/>
+                  <div>
+                    <field name="rol_experto_nombre" class="oe_inline" readonly="1"/> | 
+                    <field name="rol_experto_codigo" class="oe_inline" readonly="1"/>
+                  </div>
+                </group>
+                <group col="1">
+                  <field name="rol_experto_resultado" readonly="1"/>
+                </group>
+              </group>
+              <group col="2">
+                <group col="1">
+                  <field name="rol_capacidad_pago_mensual" readonly="1"/>
+                </group>
+                <group col="1">
+                  <field name="rol_partner_tipo_id" readonly="1"/>
+                </group>
+              </group>
+              <group col="2">
+                <group col="1">
+                  <field name="rol_experto_ingreso" readonly="1"/>
+                </group>
+                <group col="1">
+                  <field name="rol_experto_compromiso_mensual" readonly="1"/>
+                </group>
+              </group>
+              <group col="2">
+                <group col="1">
+                  <field name="rol_experto_tarjeta" readonly="1"/>
+                </group>
+                <group col="1">
+                  <field name="rol_experto_puntos" readonly="1"/>
+                </group>
+              </group>
+              <group col="1">
+                <field name="rol_experto_detalles_estado" invisible="0"/>
+                <field name="rol_experto_detalles_texto" widget="html" readonly="1"/>
+              </group>
+              <group col="2">
+                <button name="button_solicitar_informe" string="Solicitar informe" type="object" confirm="Desea solicitar el informe?"/>
+                <button name="button_consultar_informe" string="Consultar informe" type="object" confirm="Desea consultar el informe?"/>
+              </group>
             </group>
           </group>
         </xpath>
       </field>
     </record>
+
+        <!-- Vista Form Riesgo Crediticio -->
+
+        <record id="financiera_res_partner_scoring_form_inherit"  model="ir.ui.view">
+          <field name="name">Extension Partner rol form</field>
+          <field name="model">res.partner</field>
+          <field name="inherit_id" ref="financiera_prestamos.financiera_res_partner_scoring_form"/>
+          <field name="arch" type="xml">
+            <xpath expr="//group[@name='risk']" position="after">
+              <group string="Riesgo Online" col="1" style="background-color: #E6E6E6">
+                <group col="1">
+                  <group col="2">
+                    <field name="rol_fecha_informe" readonly="1"/>
+                    <field name="rol_perfil_letra" readonly="1"/>
+                  </group>
+                  <field name="rol_perfil_texto" readonly="1"/>
+                  <group col="2">
+                    <group col="1">
+                      <field name="rol_name" readonly="1"/>
+                    </group>
+                    <group col="1">
+                      <field name="rol_cuit" readonly="1"/>
+                    </group>
+                  </group>
+                  <field name="rol_domicilio" readonly="1"/>
+                  <button name="asignar_identidad_rol_pagina_score" string="Asignar identidad ROL al Cliente" attrs="{'invisible': ['|', ('rol_cuit', '=', False), ('rol_name', '=', False)]}" type="object" confirm="Desea confirmar?"/>
+                  <group col="2">
+                    <group col="1">
+                      <label for="rol_experto_nombre" string="Modelo evaluado"/>
+                      <div>
+                        <field name="rol_experto_nombre" class="oe_inline" readonly="1"/> | 
+                        <field name="rol_experto_codigo" class="oe_inline" readonly="1"/>
+                      </div>
+                    </group>
+                    <group col="1">
+                      <field name="rol_experto_resultado" readonly="1"/>
+                    </group>
+                  </group>
+                  <group col="2">
+                    <group col="1">
+                      <field name="rol_capacidad_pago_mensual" readonly="1"/>
+                    </group>
+                    <group col="1">
+                      <field name="rol_partner_tipo_id" readonly="1"/>
+                    </group>
+                  </group>
+                  <group col="2">
+                    <group col="1">
+                      <field name="rol_experto_ingreso" readonly="1"/>
+                    </group>
+                    <group col="1">
+                      <field name="rol_experto_compromiso_mensual" readonly="1"/>
+                    </group>
+                  </group>
+                  <group col="2">
+                    <group col="1">
+                      <field name="rol_experto_tarjeta" readonly="1"/>
+                    </group>
+                    <group col="1">
+                      <field name="rol_experto_puntos" readonly="1"/>
+                    </group>
+                  </group>
+                  <group col="2">
+                    <button name="button_solicitar_informe_pagina_riesgo" string="Solicitar informe" type="object" confirm="Desea solicitar el informe?"/>
+                    <button name="button_consultar_informe_pagina_riesgo" string="Consultar informe" type="object" confirm="Desea consultar el informe?"/>
+                  </group>
+                </group>
+              </group>
+            </xpath>
+          </field>
+        </record>
 
   </data>
 </openerp>

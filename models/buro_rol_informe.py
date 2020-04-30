@@ -41,7 +41,8 @@ class ExtendsResPartnerRol(models.Model):
 	rol_experto_monto_mensual_evaluado = fields.Char('CP evaluada (obsoleto)')
 	rol_capacidad_pago_mensual = fields.Float('ROL - CPM', digits=(16,2))
 	rol_partner_tipo_id = fields.Many2one('financiera.partner.tipo', 'ROL - Tipo de cliente')
-	
+	# Info perfil
+	rol_domicilio = fields.Char('Domicilio', compute='_compute_rol_domicilio')
 	rol_domicilio_ids = fields.One2many('financiera.buro.rol.informe.domicilio', 'partner_id', 'Domicilios')
 	rol_telefono_ids = fields.One2many('financiera.buro.rol.informe.telefono', 'partner_id', 'Telefonos')
 	rol_actividad_ids = fields.One2many('financiera.buro.rol.informe.actividad', 'partner_id', 'Actividad comercial')
@@ -79,6 +80,11 @@ class ExtendsResPartnerRol(models.Model):
 	@api.one
 	def button_consultar_informe(self):
 		self.consultar_informe()
+
+	@api.multi
+	def button_consultar_informe_pagina_riesgo(self):
+		self.consultar_informe()
+		return self.ver_partner_score()
 
 	def consultar_informe(self):
 		ret = None
@@ -243,13 +249,48 @@ class ExtendsResPartnerRol(models.Model):
 	def button_solicitar_informe(self):
 		self.solicitar_informe()
 
+	@api.multi
+	def button_solicitar_informe_pagina_riesgo(self):
+		self.solicitar_informe()
+		return self.ver_partner_score()
+
+
 	@api.one
 	def asignar_identidad_rol(self):
+		# Solo se asignaran datos inalterables como nombre y cuit
 		if self.rol_cuit != False:
 			self.main_id_number = self.rol_cuit
 		if self.rol_name != False:
 			self.name = self.rol_name
-		self.confirm()
+		# if len(self.rol_domicilio_ids) > 0:
+		# 	domicilio = self.rol_domicilio_ids[0].domicilio.split(', ')
+		# 	print("domicilio: ", domicilio)
+		# 	if len(domicilio) > 0:
+		# 		self.street = domicilio[0]
+		# 	if len(domicilio) > 1:
+		# 		self.city = domicilio[1]
+		# 	if len(domicilio) > 2:
+		# 		print("buscando state: ", domicilio[2])
+		# 		state_obj = self.pool.get('res.country.state')
+		# 		state_ids = state_obj.search(self.env.cr, self.env.uid, [
+		# 			('name', '=ilike', domicilio[2])
+		# 		])
+		# 		if len(state_ids) > 0:
+		# 			self.state_id = state_ids[0]
+		# 			country_id = state_obj.browse(self.env.cr, self.env.uid, state_ids[0]).country_id
+		# 			self.country_id = country_id.id
+		# 	if len(domicilio) > 3:
+		# 		self.zip = domicilio[3]
+
+	@api.one
+	def _compute_rol_domicilio(self):
+		if len(self.rol_domicilio_ids) > 0:
+			self.rol_domicilio = self.rol_domicilio_ids[0].domicilio
+
+	@api.multi
+	def asignar_identidad_rol_pagina_score(self):
+		self.asignar_identidad_rol()
+		return self.ver_partner_score()
 
 	def consultar_resultado_informe_rol(self):
 		return self.rol_experto_resultado
