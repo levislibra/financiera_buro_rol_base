@@ -77,15 +77,6 @@ class ExtendsResPartnerRol(models.Model):
 					ret = persona['cuit']
 		return ret
 
-	@api.one
-	def button_consultar_informe(self):
-		self.consultar_informe()
-
-	@api.multi
-	def button_consultar_informe_pagina_riesgo(self):
-		self.consultar_informe()
-		return self.ver_partner_score()
-
 	def consultar_informe(self):
 		ret = None
 		rol_configuracion_id = self.company_id.rol_configuracion_id
@@ -103,6 +94,14 @@ class ExtendsResPartnerRol(models.Model):
 			data = r.json()
 			ret = self.procesar_respuesta_informe_rol(data, cuit, 'consulta')
 		return ret
+
+	@api.one
+	def button_consultar_informe(self):
+		self.consultar_informe()
+		return {'type': 'ir.actions.do_nothing'}
+
+	def consultar_resultado_informe_rol(self):
+		return self.rol_experto_resultado
 
 	def solicitar_informe(self):
 		ret = False
@@ -125,6 +124,11 @@ class ExtendsResPartnerRol(models.Model):
 			data = r.json()
 			ret = self.procesar_respuesta_informe_rol(data, cuit, 'solicitud')
 		return ret
+
+	@api.one
+	def button_solicitar_informe(self):
+		self.solicitar_informe()
+		return {'type': 'ir.actions.do_nothing'}
 
 	def procesar_respuesta_informe_rol(self, data, cuit, tipo):
 		if 'error' in data.keys():
@@ -246,54 +250,45 @@ class ExtendsResPartnerRol(models.Model):
 		return self.rol_experto_resultado
 
 	@api.one
-	def button_solicitar_informe(self):
-		self.solicitar_informe()
-
-	@api.multi
-	def button_solicitar_informe_pagina_riesgo(self):
-		self.solicitar_informe()
-		return self.ver_partner_score()
-
+	def _compute_rol_domicilio(self):
+		if len(self.rol_domicilio_ids) > 0:
+			self.rol_domicilio = self.rol_domicilio_ids[0].domicilio
 
 	@api.one
-	def asignar_identidad_rol(self):
+	def button_asignar_identidad_rol(self):
 		# Solo se asignaran datos inalterables como nombre y cuit
 		if self.rol_cuit != False:
 			self.main_id_number = self.rol_cuit
 		if self.rol_name != False:
 			self.name = self.rol_name
-		# if len(self.rol_domicilio_ids) > 0:
-		# 	domicilio = self.rol_domicilio_ids[0].domicilio.split(', ')
-		# 	print("domicilio: ", domicilio)
-		# 	if len(domicilio) > 0:
-		# 		self.street = domicilio[0]
-		# 	if len(domicilio) > 1:
-		# 		self.city = domicilio[1]
-		# 	if len(domicilio) > 2:
-		# 		print("buscando state: ", domicilio[2])
-		# 		state_obj = self.pool.get('res.country.state')
-		# 		state_ids = state_obj.search(self.env.cr, self.env.uid, [
-		# 			('name', '=ilike', domicilio[2])
-		# 		])
-		# 		if len(state_ids) > 0:
-		# 			self.state_id = state_ids[0]
-		# 			country_id = state_obj.browse(self.env.cr, self.env.uid, state_ids[0]).country_id
-		# 			self.country_id = country_id.id
-		# 	if len(domicilio) > 3:
-		# 		self.zip = domicilio[3]
-
-	@api.one
-	def _compute_rol_domicilio(self):
+		return {'type': 'ir.actions.do_nothing'}
+	
+	@api.multi
+	def button_asignar_domicilio_rol(self):
 		if len(self.rol_domicilio_ids) > 0:
-			self.rol_domicilio = self.rol_domicilio_ids[0].domicilio
+			domicilio = self.rol_domicilio_ids[0].domicilio.split(', ')
+			if len(domicilio) > 0:
+				self.street = domicilio[0]
+			if len(domicilio) > 1:
+				self.city = domicilio[1]
+			if len(domicilio) > 2:
+				state_obj = self.pool.get('res.country.state')
+				state_ids = state_obj.search(self.env.cr, self.env.uid, [
+					('name', '=ilike', domicilio[2])
+				])
+				if len(state_ids) > 0:
+					self.state_id = state_ids[0]
+					country_id = state_obj.browse(self.env.cr, self.env.uid, state_ids[0]).country_id
+					self.country_id = country_id.id
+			if len(domicilio) > 3:
+				self.zip = domicilio[3]
+		return {'type': 'ir.actions.do_nothing'}
 
 	@api.multi
-	def asignar_identidad_rol_pagina_score(self):
-		self.asignar_identidad_rol()
-		return self.ver_partner_score()
-
-	def consultar_resultado_informe_rol(self):
-		return self.rol_experto_resultado
+	def button_asignar_cpm_y_tipo_rol(self):
+		self.partner_tipo_id = self.rol_partner_tipo_id.id
+		self.capacidad_pago_mensual = self.rol_capacidad_pago_mensual
+		return {'type': 'ir.actions.do_nothing'}
 
 class FinancieraBuroRolInforme(models.Model):
 	_name = 'financiera.buro.rol.informe'
