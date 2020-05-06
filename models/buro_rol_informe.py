@@ -254,7 +254,7 @@ class ExtendsResPartnerRol(models.Model):
 		if len(self.rol_domicilio_ids) > 0:
 			self.rol_domicilio = self.rol_domicilio_ids[0].domicilio
 
-	@api.one
+	@api.multi
 	def button_asignar_identidad_rol(self):
 		# Solo se asignaran datos inalterables como nombre y cuit
 		if self.rol_cuit != False:
