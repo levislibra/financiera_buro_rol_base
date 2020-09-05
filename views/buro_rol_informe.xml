@@ -1,41 +1,323 @@
 <openerp>
   <data>
 
-    <!-- Lista de informes solicitados -->
+    <!-- Lista de informes solicitados/consultados -->
     <record model="ir.ui.view" id="financiera_rol_tree">
-      <field name="name">financiera.buro.rol.informe.tree</field>
-      <field name="model">financiera.buro.rol.informe</field>
+      <field name="name">rol.tree</field>
+      <field name="model">rol</field>
       <field name="arch" type="xml">
         <tree create="false" delete="false" edit="false">
-          <field name="create_date" string="Fecha"/>
-          <field name="tipo"/>
-          <field name="partner_id"/>
-          <field name="name"/>
-          <field name="cuit"/>
-          <field name="sexo"/>
-          <field name="fecha_nacimiento"/>
-          <field name="perfil_letra"/>
-          <field name="rol_experto_nombre"/>
-          <field name="rol_experto_resultado"/>
-          <field name="capacidad_pago_mensual"/>
+          <field name="fecha"/>
+          <field name="informe_id"/>
+          <field name="persona_id"/>
         </tree>
       </field>
     </record>
 
-    <record model="ir.actions.act_window" id="financiera_rol_informe_action">
-      <field name="name">Lista de informes solicitados</field>
-      <field name="res_model">financiera.buro.rol.informe</field>
+    <record model="ir.actions.act_window" id="financiera_rol_action">
+      <field name="name">Lista de informes</field>
+      <field name="res_model">rol</field>
       <field name="view_mode">tree</field>
       <field name="view_id" ref="financiera_rol_tree"/>
-    </record>
+		</record>
+		
+		<!-- Vista form de rol.persona -->
+
+		<record id="rol_persona_form" model="ir.ui.view">
+			<field name="name">rol.persona.form</field>
+			<field name="model">rol.persona</field>
+			<field name="arch" type="xml">
+				<form string="Informe de la persona" create="false" delete="false" edit="false">
+					<sheet>
+						<script>
+							$(document).ready(function(){
+								$('.oe_form_sheet_width').css({'background-color': 'gainsboro'});
+							});
+						</script>
+						<group col="3">
+							<group>
+								<!-- <field name="company_id" groups="base.group_erp_manager"/> -->
+								<field name="nombre"/>
+								<field name="sexo"/>
+								<field name="edad"/>
+								<field name="tipo"/>
+							</group>
+							<group>
+								<field name="fallecido"/>
+								<field name="jubilado"/>
+								<field name="jubilado_beneficio"/>
+							</group>
+							<group>
+								<field name="experto_id"/>
+								<field name="perfil_id"/>
+								<field name="bancarizacion_id"/>
+								<field name="actividad_id"/>
+							</group>
+						</group>
+						<notebook>
+							<page name="domicilio" string="Domicilio">
+								<field name="domicilio_ids" limit="4">
+									<tree>
+										<field name="tipo"/>
+										<field name="domicilio"/>
+									</tree>
+								</field>
+							</page>
+							<page name="telefono" string="Telefono">
+								<field name="telefono_ids" limit="4">
+									<tree>
+										<field name="titular"/>
+										<field name="domicilio"/>
+										<field name="numero"/>
+									</tree>
+								</field>
+							</page>
+							<page name="personas_igual_domicilio" string="Personas igual domicilio">
+								<field name="personas_igual_domicilio_ids" limit="4">
+										<tree>
+											<field name="nombre"/>
+											<field name="rol_id" string="CUIT"/>
+											<field name="sexo"/>
+											<field name="domicilio"/>
+											<field name="relacion"/>
+										</tree>
+									</field>
+							</page>
+							<page name="personas_relacionada" string="Personas relacionadas">
+								<field name="personas_relacionada_ids" limit="4">
+									<tree>
+										<field name="nombre"/>
+										<field name="rol_id" string="CUIT"/>
+										<field name="sexo"/>
+										<field name="domicilio"/>
+										<field name="relacion"/>
+									</tree>
+								</field>
+							</page>
+							<page name="vecinos" string="Vecinos">
+								<field name="vecino_ids" limit="4">
+									<tree>
+										<field name="titular"/>
+										<field name="domicilio"/>
+										<field name="numero"/>
+									</tree>
+								</field>
+							</page>
+							<page name="marcas" string="Marcas">
+								<field name="marca_ids" limit="4">
+									<tree>
+										<field name="nombre"/>
+										<field name="actas"/>
+									</tree>
+								</field>
+							</page>
+						</notebook>
+					</sheet>
+				</form>
+			</field>
+	</record>
+
+	<!-- Vista form de rol.experto -->
+
+	<record id="rol_persona_experto_form" model="ir.ui.view">
+		<field name="name">rol.experto.form</field>
+		<field name="model">rol.experto</field>
+		<field name="arch" type="xml">
+			<form string="Experto" create="false" delete="false" edit="false">
+				<sheet>
+					<script>
+						$(document).ready(function(){
+							$('.oe_form_sheet_width').css({'background-color': 'gainsboro'});
+						});
+					</script>
+					<group col="3">
+						<group>
+							<!-- <field name="company_id" groups="base.group_erp_manager"/> -->
+							<field name="codigo"/>
+							<field name="nombre"/>
+							<field name="grupo"/>
+							<field name="resultado"/>
+						</group>
+						<group>
+							<field name="compromiso_mensual"/>
+							<field name="compromiso_adicional"/>
+							<field name="compromiso_pp"/>
+							<field name="compromiso_tc"/>
+							<field name="compromiso_mensual_rol"/>
+							<field name="puntos"/>
+						</group>
+						<group>
+							<field name="ingreso"/>
+							<field name="ingreso_declarado"/>
+						</group>
+					</group>
+					<notebook>
+						<page name="detalles" string="Detalles del modelo evaluado">
+							<field name="detalles_ids">
+								<tree>
+									<field name="estado"/>
+									<field name="texto"/>
+									<field name="tipo"/>
+								</tree>
+							</field>
+						</page>
+					</notebook>
+				</sheet>
+			</form>
+		</field>
+	</record>
+
+	<!-- Vista form de rol.persona.bancarizacion -->
+
+	<record id="rol_persona_bancarizacion_form" model="ir.ui.view">
+		<field name="name">rol.persona.bancarizacion.form</field>
+		<field name="model">rol.persona.bancarizacion</field>
+		<field name="arch" type="xml">
+			<form string="Bancarizacion" create="false" delete="false" edit="false">
+				<sheet>
+					<script>
+						$(document).ready(function(){
+							$('.oe_form_sheet_width').css({'background-color': 'gainsboro'});
+						});
+					</script>
+					<group>
+						<group>
+							<!-- <field name="company_id" groups="base.group_erp_manager"/> -->
+							<field name="sin_mora_meses"/>
+							<field name="sin_mora_desde"/>
+						</group>
+						<group></group>
+					</group>
+					<notebook>
+						<page name="entidades_historico" string="Entidades historico">
+							<group>
+								<group>
+									<div>
+										<field name="entidades_historico_ids">
+											<tree>
+												<field name="entidad"/>
+												<field name="periodo"/>
+												<field name="situacion"/>
+												<field name="monto"/>
+											</tree>
+										</field>
+									</div>
+								</group>
+								<group></group>
+							</group>
+						</page>
+						<page name="cheques_historico" string="Cheques historico">
+							<group>
+								<group>
+									<div>
+										<field name="cheques_historico_ids">
+											<tree>
+												<field name="fecha_rechazo"/>
+												<field name="monto"/>
+												<field name="causal"/>
+												<field name="fecha_pago"/>
+												<field name="multa"/>
+											</tree>
+										</field>
+									</div>
+								</group>
+								<group></group>
+							</group>
+						</page>
+					</notebook>
+				</sheet>
+			</form>
+		</field>
+	</record>
+
+	<!-- Vista form de rol.persona.actividad -->
+
+	<record id="rol_persona_actividad_form" model="ir.ui.view">
+		<field name="name">rol.persona.actividad.form</field>
+		<field name="model">rol.persona.actividad</field>
+		<field name="arch" type="xml">
+			<form string="Actividad" create="false" delete="false" edit="false">
+				<sheet>
+					<script>
+						$(document).ready(function(){
+							$('.oe_form_sheet_width').css({'background-color': 'gainsboro'});
+						});
+					</script>
+					<group>
+						<group>
+							<!-- <field name="company_id" groups="base.group_erp_manager"/> -->
+							<field name="empleado_publico"/>
+							<field name="empleador_id"/>
+							<field name="autonomo_id"/>
+							<field name="anses_id"/>
+						</group>
+						<group></group>
+					</group>
+					<notebook>
+						<page name="relacion_dependencia" string="Relacion de dependencia">
+							<group>
+								<group>
+									<div>
+										<field name="relacion_dependencia_ids">
+											<tree>
+												<field name="rol_id" string="Empleador"/>
+												<field name="desde"/>
+												<field name="hasta"/>
+											</tree>
+										</field>
+									</div>
+								</group>
+								<group></group>
+							</group>
+						</page>
+						<page name="actividades_afip" string="Actividades AFIP">
+							<group>
+								<group>
+									<div>
+										<field name="actividades_afip_ids">
+											<tree>
+												<field name="codigo"/>
+												<field name="descripcion"/>
+												<field name="formulario"/>
+											</tree>
+										</field>
+									</div>
+								</group>
+								<group></group>
+							</group>
+						</page>
+						<page name="condicion_tributaria" string="Condicion tributaria">
+							<group>
+								<group>
+									<div>
+										<field name="condicion_tributaria_ids">
+											<tree>
+												<field name="monotributo"/>
+												<field name="actividad"/>
+												<field name="ganancias"/>
+												<field name="iva"/>
+												<field name="empleador"/>
+												<field name="desde"/>
+												<field name="hasta"/>
+											</tree>
+										</field>
+									</div>
+								</group>
+								<group></group>
+							</group>
+						</page>
+					</notebook>
+				</sheet>
+			</form>
+		</field>
+	</record>
 
     <!-- menu categories -->
     
     <menuitem name="Informes" id="menu_informes" sequence="10" parent="menu_rol"/>
 
-    <menuitem name="Informes" id="menu_informes_action" sequence="1" parent="menu_informes" action="financiera_rol_informe_action"/>
-
-
+		<menuitem name="Informes" id="menu_informes_action" sequence="1" 
+		parent="menu_informes" action="financiera_rol_action"/>
 
     <!-- Vista Form Partner Page Buro ROL -->
 
@@ -45,83 +327,18 @@
       <field name="inherit_id" ref="base.view_partner_form"/>
       <field name="arch" type="xml">
         <xpath expr="//page[2]" position='after'>
-          <page string='Buro ROL' groups="financiera_buro_rol_base.manager">
-            <group>
-              <group string="Ultima consulta">
-                <field name="rol_domicilio_ids">
-                  <tree>
-                    <field name="domicilio"/>
-                    <field name="tipo"/>
-                  </tree>
-                </field>
-                <field name="rol_telefono_ids">
-                  <tree>
-                    <field name="telefono"/>
-                    <field name="anio_guia"/>
-                    <field name="titular"/>
-                  </tree>
-                </field>
-                <field name="rol_actividad_ids">
-                  <tree>
-                    <field name="actividad_comercial"/>
-                    <field name="codigo"/>
-                    <field name="formulario"/>
-                  </tree>
-                </field>
-              </group>
-              <group string="Informes">
-                <field name="buro_rol_informe_ids">
-                  <tree>
-                    <field name="fecha_informe"/>
-                    <field name="rol_id"/>
-                    <field name="name"/>
-                    <field name="cuit"/>
-                    <field name="perfil_letra"/>
-                  </tree>
-                  <form>
-                    <group>
-                      <field name="name"/>
-                      <field name="cuit"/>
-                      <!-- <field name="documento"/> -->
-                      <field name="sexo"/>
-                      <!-- <field name="clase"/> -->
-                      <field name="fecha_nacimiento"/>
-                      <field name="fecha_informe"/>
-                      <field name="perfil_letra"/>
-                      <field name="perfil_texto"/>
-                    </group>
-                    <notebook>
-                      <page string="Domicilios">
-                        <field name="domicilio_ids" readonly="1">
-                          <tree>
-                            <field name="domicilio"/>
-                            <field name="tipo"/>
-                          </tree>
-                        </field>
-                      </page>
-                      <page string="Telefonos">
-                        <field name="telefono_ids" readonly="1">
-                          <tree>
-                            <field name="telefono"/>
-                            <field name="anio_guia"/>
-                            <field name="titular"/>
-                          </tree>
-                        </field>
-                      </page>
-                      <page string="Actividades AFIP">
-                        <field name="actividad_ids" readonly="1">
-                          <tree>
-                            <field name="actividad_comercial"/>
-                            <field name="codigo"/>
-                            <field name="formulario"/>
-                          </tree>
-                        </field>
-                      </page>
-                    </notebook>
-                  </form>
-                </field>
-              </group>
-            </group>
+          <page string='Riesgo Online' groups="financiera_buro_rol_base.manager">
+						<group string="Informes">
+							<div>
+								<field name="rol_ids">
+									<tree create="false" edit="false" delete="false" limit="5">
+										<field name="fecha"/>
+										<field name="informe_id"/>
+										<field name="persona_id"/>
+									</tree>
+								</field>
+							</div>
+						</group>
           </page>
         </xpath>
       </field>
@@ -182,18 +399,6 @@
                 <group col="1">
                   <field name="rol_experto_compromiso_mensual" readonly="1"/>
                 </group>
-              </group>
-              <group col="2">
-                <group col="1">
-                  <field name="rol_experto_tarjeta" readonly="1"/>
-                </group>
-                <group col="1">
-                  <field name="rol_experto_puntos" readonly="1"/>
-                </group>
-              </group>
-              <group col="1">
-                <field name="rol_experto_detalles_estado" invisible="0"/>
-                <field name="rol_experto_detalles_texto" widget="html" readonly="1"/>
               </group>
             </group>
             <separate col="1"/>
@@ -259,14 +464,6 @@
                 </group>
                 <group col="1">
                   <field name="rol_experto_compromiso_mensual" readonly="1"/>
-                </group>
-              </group>
-              <group col="2">
-                <group col="1">
-                  <field name="rol_experto_tarjeta" readonly="1"/>
-                </group>
-                <group col="1">
-                  <field name="rol_experto_puntos" readonly="1"/>
                 </group>
               </group>
             </group>

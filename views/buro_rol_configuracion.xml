@@ -32,37 +32,9 @@
                       </group>
                       <group>
                         <field name="solicitar_informe_enviar_a_revision"/>
-                        <field name="asignar_capacidad_pago_mensual"/>
-                        <field name="asignar_partner_tipo_segun_perfil"/>
+												<field name="solicitar_informe_dias"/>
+												<field name="modelo_experto"/>
                       </group>
-                  </group>
-                  <group>
-                    <group>
-                      <notebook>
-                        <page string="Modelos Experto segun Entidad">
-                          <field name="modelo_ids">
-                            <tree editable="true">
-                              <field name="entidad_id" required="1"/>
-                              <field name="name" required="1"/>
-                              <field name="active"/>
-                            </tree>
-                          </field>
-                        </page>
-                      </notebook>
-                    </group>
-                    <group>
-                      <notebook>
-                        <page string="Asignacion de CPM segun Perfil">
-                          <field name="perfil_to_cpm_ids">
-                            <tree editable="true">
-                              <field name="perfil" required="1"/>
-                              <field name="capacidad_pago_mensual" required="1"/>
-                              <field name="partner_tipo_id" options="{'no_quick_create':True,'no_create_edit':True, 'no_open':True}"/>
-                            </tree>
-                          </field>
-                        </page>
-                      </notebook>
-                    </group>
                   </group>
                 </sheet>
             </form>
