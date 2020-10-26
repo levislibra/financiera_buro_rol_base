@@ -73,7 +73,8 @@ class ExtendsResPartnerRol(models.Model):
 			ValidationError("Falta configuracion Riesgo Online.")
 		return ret
 
-	def consultar_informe(self):
+	# Funcion documentada en la API!
+	def consultar_informe_rol(self):
 		rol_configuracion_id = self.company_id.rol_configuracion_id
 		if rol_configuracion_id:
 			dias_ultimo_informe = 0
@@ -100,16 +101,18 @@ class ExtendsResPartnerRol(models.Model):
 					ValidationError("Falta DNI, CUIT o CUIL.")
 		else:
 			ValidationError("Falta configuracion Riesgo Online.")
+		return True
 
 	@api.one
-	def button_consultar_informe(self):
-		self.consultar_informe()
+	def button_consultar_informe_rol(self):
+		self.consultar_informe_rol()
 		return {'type': 'ir.actions.do_nothing'}
 
 	def consultar_resultado_informe_rol(self):
 		return self.rol_experto_resultado
 
-	def solicitar_informe(self):
+	# Funcion documentada en la API!
+	def solicitar_informe_rol(self):
 		rol_configuracion_id = self.company_id.rol_configuracion_id
 		if rol_configuracion_id:
 			dias_ultimo_informe = 0
@@ -139,10 +142,11 @@ class ExtendsResPartnerRol(models.Model):
 					ValidationError("Falta DNI, CUIT o CUIL.")
 		else:
 			ValidationError("Falta configuracion Riesgo Online.")
-
+		return True
+	
 	@api.one
-	def button_solicitar_informe(self):
-		self.solicitar_informe()
+	def button_solicitar_informe_rol(self):
+		self.solicitar_informe_rol()
 		return {'type': 'ir.actions.do_nothing'}
 
 	@api.one
@@ -201,5 +205,5 @@ class ExtendsFinancieraPrestamo(models.Model):
 		if len(self.company_id.rol_configuracion_id) > 0:
 			rol_configuracion_id = self.company_id.rol_configuracion_id
 			if rol_configuracion_id.solicitar_informe_enviar_a_revision:
-				self.partner_id.solicitar_informe()
+				self.partner_id.solicitar_informe_rol()
 		super(ExtendsFinancieraPrestamo, self).enviar_a_revision()

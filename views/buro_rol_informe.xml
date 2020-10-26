@@ -469,8 +469,8 @@
             </group>
             <separate col="1"/>
             <group col="2">
-              <button name="button_solicitar_informe" string="Solicitar informe" type="object" confirm="Desea solicitar el informe?"/>
-              <button name="button_consultar_informe" string="Consultar informe" type="object" confirm="Desea consultar el informe?"/>
+              <button name="button_solicitar_informe_rol" string="Solicitar informe" type="object" confirm="Desea solicitar el informe?"/>
+              <button name="button_consultar_informe_rol" string="Consultar informe" type="object" confirm="Desea consultar el informe?"/>
             </group>
           </group>
         </xpath>
