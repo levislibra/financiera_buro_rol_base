@@ -240,13 +240,20 @@ class ExtendsResPartnerRol(models.Model):
 						empleado_antiguedad, monotributista_antiguedad, autonomo_antiguedad, 
 						empleado_continuidad, monotributista_continuidad, autonomo_continuidad, jubilado_pensionado,
 						resumen_situaciones_bancarias)
-					if cda_evaluacion == 'aprobado' and rol_configuracion_id.asignar_cda_otorgamiento:
-						self.rol_partner_tipo_id = cda_id.partner_tipo_id.id
-						self.rol_capacidad_pago_mensual = cda_id.capacidad_pago_mensual
-						self.partner_tipo_id = cda_id.partner_tipo_id.id
-						self.capacidad_pago_mensual = cda_id.capacidad_pago_mensual
-						self.rol_cda_aprobado_id = cda_id.id
-						break
+					if rol_configuracion_id.asignar_cda_otorgamiento:
+						if cda_evaluacion == 'aprobado':
+							self.rol_partner_tipo_id = cda_id.partner_tipo_id.id
+							self.rol_capacidad_pago_mensual = cda_id.capacidad_pago_mensual
+							self.partner_tipo_id = cda_id.partner_tipo_id.id
+							self.capacidad_pago_mensual = cda_id.capacidad_pago_mensual
+							self.rol_cda_aprobado_id = cda_id.id
+							break
+						else:
+							self.rol_partner_tipo_id = False
+							self.rol_capacidad_pago_mensual = 0
+							self.partner_tipo_id = False
+							self.capacidad_pago_mensual = 0
+							self.rol_cda_aprobado_id = None
 
 class ExtendsFinancieraPrestamo(models.Model):
 	_name = 'financiera.prestamo'

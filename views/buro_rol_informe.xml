@@ -350,6 +350,7 @@
         <xpath expr="//page[2]" position='after'>
           <page string='Riesgo Online' groups="financiera_buro_rol_base.manager">
 						<group string="Informes" col="1">
+							<field name="rol_cda_aprobado_id" readonly="1"/>
 							<field name="rol_ids">
 								<tree create="false" edit="false" delete="false" limit="5">
 									<field name="fecha"/>
