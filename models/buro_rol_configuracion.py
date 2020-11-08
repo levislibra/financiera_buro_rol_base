@@ -18,6 +18,7 @@ class FinancieraBuroRolConfiguracion(models.Model):
 	solicitar_informe_enviar_a_revision = fields.Boolean('Solicitar informe al enviar a revision')
 	solicitar_informe_dias = fields.Integer('Dias para solicitar nuevo informe')
 	modelo_experto = fields.Char('Modelo experto a evaluar')
+	cda_ids = fields.One2many('financiera.buro.rol.cda', 'config_id', 'Modelos CDA')
 	company_id = fields.Many2one('res.company', 'Empresa', required=False, default=lambda self: self.env['res.company']._company_default_get('financiera.buro.rol.configuracion'))
 	
 	@api.one

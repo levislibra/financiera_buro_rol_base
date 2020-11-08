@@ -35,7 +35,20 @@
 												<field name="solicitar_informe_dias"/>
 												<field name="modelo_experto"/>
                       </group>
-                  </group>
+									</group>
+									<notebook>
+										<page name="cda" string="Modelos CDA">
+											<field name="cda_ids">
+												<tree>
+													<field name="orden"/>
+													<field name="name"/>
+													<field name="activo"/>
+													<field name="partner_tipo_id"/>
+													<field name="capacidad_pago_mensual"/>
+												</tree>
+											</field>
+										</page>
+									</notebook>
                 </sheet>
             </form>
         </field>

@@ -39,6 +39,8 @@ class ExtendsResPartnerRol(models.Model):
 	# rol_telefono_ids = fields.One2many('financiera.buro.rol.informe.telefono', 'partner_id', 'Telefonos')
 	# rol_actividad_ids = fields.One2many('financiera.buro.rol.informe.actividad', 'partner_id', 'Actividad comercial')
 	rol_fecha_informe = fields.Datetime('Fecha del informe', related='rol_id.fecha')
+	rol_cda_aprobado_id = fields.Many2one('financiera.buro.rol.cda', 'CDA aprobado')
+	rol_cda_reporte_ids = fields.One2many('financiera.buro.rol.cda.reporte', 'partner_id', 'CDA reporte')
 
 	def buscar_persona(self):
 		ret = None
@@ -101,6 +103,7 @@ class ExtendsResPartnerRol(models.Model):
 					ValidationError("Falta DNI, CUIT o CUIL.")
 		else:
 			ValidationError("Falta configuracion Riesgo Online.")
+		self.check_cdas()
 		return True
 
 	@api.one
@@ -142,6 +145,7 @@ class ExtendsResPartnerRol(models.Model):
 					ValidationError("Falta DNI, CUIT o CUIL.")
 		else:
 			ValidationError("Falta configuracion Riesgo Online.")
+		self.check_cdas()
 		return True
 	
 	@api.one
@@ -153,7 +157,6 @@ class ExtendsResPartnerRol(models.Model):
 	def _compute_rol_consulta_actual(self):
 		if len(self.rol_ids) > 0:
 			self.rol_id = self.rol_ids[0]
-
 
 	@api.one
 	def _compute_rol_domicilio(self):
@@ -171,8 +174,8 @@ class ExtendsResPartnerRol(models.Model):
 	
 	@api.multi
 	def button_asignar_domicilio_rol(self):
-		if len(self.rol_domicilio_ids) > 0:
-			domicilio = self.rol_domicilio_ids[0].domicilio.split(', ')
+		if self.rol_domicilio:
+			domicilio = self.rol_domicilio.split(', ')
 			if len(domicilio) > 0:
 				self.street = domicilio[0]
 			if len(domicilio) > 1:
@@ -195,6 +198,35 @@ class ExtendsResPartnerRol(models.Model):
 		self.partner_tipo_id = self.rol_partner_tipo_id.id
 		self.capacidad_pago_mensual = self.rol_capacidad_pago_mensual
 		return {'type': 'ir.actions.do_nothing'}
+
+	@api.one
+	def check_cdas(self):
+		if len(self.rol_id) > 0:
+			persona_id = self.rol_id.persona_id
+			sexo = persona_id.sexo
+			edad = persona_id.edad
+			# Actividad
+			empleado_vigencia = persona_id.actividad_id.actividad_empleado_vigencia
+			monotributista_vigencia = persona_id.actividad_id.actividad_monotributista_vigencia
+			autonomo_vigencia = persona_id.actividad_id.actividad_autonomo_vigencia
+			empleado_antiguedad = persona_id.actividad_id.actividad_empleado_antiguedad
+			monotributista_antiguedad = persona_id.actividad_id.actividad_monotributista_antiguedad
+			autonomo_antiguedad = persona_id.actividad_id.actividad_autonomo_antiguedad
+			empleado_continuidad = persona_id.actividad_id.actividad_empleado_continuidad
+			monotributista_continuidad = persona_id.actividad_id.actividad_monotributista_continuidad
+			autonomo_continuidad = persona_id.actividad_id.actividad_autonomo_continuidad
+			jubilado_pensionado = persona_id.jubilado
+			cda_ids = self.company_id.rol_configuracion_id.cda_ids
+			for cda_id in cda_ids:
+				if cda_id.activo and not cda_id.evaluar_cda(self.id, sexo, edad, empleado_vigencia, monotributista_vigencia, autonomo_vigencia,
+				empleado_antiguedad, monotributista_antiguedad, autonomo_antiguedad, 
+	 			empleado_continuidad, monotributista_continuidad, autonomo_continuidad, jubilado_pensionado):
+					self.rol_partner_tipo_id = cda_id.partner_tipo_id.id
+					self.rol_capacidad_pago_mensual = cda_id.capacidad_pago_mensual
+					self.partner_tipo_id = cda_id.partner_tipo_id.id
+					self.capacidad_pago_mensual = cda_id.capacidad_pago_mensual
+					self.rol_cda_aprobado_id = cda_id.id
+					break
 
 class ExtendsFinancieraPrestamo(models.Model):
 	_name = 'financiera.prestamo'

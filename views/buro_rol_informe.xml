@@ -243,15 +243,32 @@
 							$('.oe_form_sheet_width').css({'background-color': 'gainsboro'});
 						});
 					</script>
-					<group>
+					<group col="4">
 						<group>
 							<!-- <field name="company_id" groups="base.group_erp_manager"/> -->
 							<field name="empleado_publico"/>
 							<field name="empleador_id"/>
 							<field name="autonomo_id"/>
 							<field name="anses_id"/>
+							<field name="fecha_informe"/>
+							<!-- <field name="actividad"/> -->
+							<!-- <field name="actividad_vigencia"/> -->
 						</group>
-						<group></group>
+						<group string="Como empleado">
+							<field name="actividad_empleado_vigencia"/>
+							<field name="actividad_empleado_antiguedad"/>
+							<field name="actividad_empleado_continuidad"/>
+						</group>
+						<group string="Como monotributista">
+							<field name="actividad_monotributista_vigencia"/>
+							<field name="actividad_monotributista_antiguedad"/>
+							<field name="actividad_monotributista_continuidad"/>
+						</group>
+						<group string="Como autonomo">
+							<field name="actividad_autonomo_vigencia"/>
+							<field name="actividad_autonomo_antiguedad"/>
+							<field name="actividad_autonomo_continuidad"/>
+						</group>
 					</group>
 					<notebook>
 						<page name="relacion_dependencia" string="Relacion de dependencia">
@@ -328,16 +345,30 @@
       <field name="arch" type="xml">
         <xpath expr="//page[2]" position='after'>
           <page string='Riesgo Online' groups="financiera_buro_rol_base.manager">
-						<group string="Informes">
-							<div>
-								<field name="rol_ids">
-									<tree create="false" edit="false" delete="false" limit="5">
-										<field name="fecha"/>
-										<field name="informe_id"/>
-										<field name="persona_id"/>
-									</tree>
-								</field>
-							</div>
+						<group string="Informes" col="1">
+							<field name="rol_ids">
+								<tree create="false" edit="false" delete="false" limit="5">
+									<field name="fecha"/>
+									<field name="informe_id"/>
+									<field name="persona_id"/>
+								</tree>
+							</field>
+							<field name="rol_cda_reporte_ids">
+								<tree create="false" edit="false" delete="false" limit="5">
+									<field name="create_date" string="Fecha"/>
+									<field name="cda_id"/>
+									<field name="detalle_ids" string="Rechazos"/>
+									<field name="resultado"/>
+								</tree>
+								<form>
+									<sheet>
+										<field name="create_date" string="Fecha"/>
+										<field name="cda_id"/>
+										<field name="resultado"/>
+										<field name="detalle_ids" string="Rechazos"/>
+									</sheet>
+								</form>
+							</field>
 						</group>
           </page>
         </xpath>
@@ -390,7 +421,8 @@
                 <group col="1">
                   <field name="rol_partner_tipo_id" readonly="1"/>
                 </group>
-              </group>
+							</group>
+							<button name="check_cdas" string="Comprobar CDAs" type="object" confirm="Desea confirmar?"/>
               <button name="button_asignar_cpm_y_tipo_rol" string="Asignar tipo y CPM ROL al Cliente" type="object" confirm="Desea confirmar?"/>
               <group col="2">
                 <group col="1">
@@ -403,8 +435,8 @@
             </group>
             <separate col="1"/>
             <group col="2">
-              <button name="button_solicitar_informe" string="Solicitar informe" type="object" confirm="Desea solicitar el informe?"/>
-              <button name="button_consultar_informe" string="Consultar informe" type="object" confirm="Desea consultar el informe?"/>
+              <button name="button_solicitar_informe_rol" string="Solicitar informe" type="object" confirm="Desea solicitar el informe?"/>
+              <button name="button_consultar_informe_rol" string="Consultar informe" type="object" confirm="Desea consultar el informe?"/>
             </group>
           </group>
         </xpath>

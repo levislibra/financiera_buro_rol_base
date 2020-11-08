@@ -152,6 +152,7 @@ class Autonomo(models.Model):
 class RolPersonaActividadCondicionTributaria(models.Model):
 	_name = 'rol.persona.actividad.condiciontributaria'
 
+	_order = 'hasta desc'
 	rol_persona_actividad_id = fields.Many2one('rol.persona.actividad', 'Actividad')
 	monotributo = fields.Char('Monotributo')
 	actividad = fields.Char('Actividad')
@@ -231,6 +232,7 @@ class Ingresos:
 class RelacionDependencia(models.Model):
 	_name = 'rol.persona.actividad.relaciondependencia'
 
+	_order = 'hasta desc'
 	rol_persona_actividad_id = fields.Many2one('rol.persona.actividad')
 	rol_id = fields.Char('Rol Id')
 	desde = fields.Datetime('Desde')
@@ -261,6 +263,24 @@ class RolPersonaActividad(models.Model):
 	actividades_afip_ids = fields.One2many('rol.persona.actividad.actividadesafip', 'rol_persona_actividad_id', 'Actividades afip')
 	condicion_tributaria_ids = fields.One2many('rol.persona.actividad.condiciontributaria', 'rol_persona_actividad_id', 'Condicion tributaria')
 	# impuestos_afip_id = fields.Many2one('rol.persona.actividad.impuestosafip', 'Impuestos afip')
+	fecha_informe = fields.Datetime('Fecha informe', compute='_compute_fecha_informe')
+	# Como empleado
+	actividad_empleado_vigencia = fields.Boolean('Empleado vigente', compute='_compute_actividad_empleado')
+	actividad_empleado_antiguedad = fields.Integer('Empleado antiguedad', compute='_compute_actividad_empleado')
+	actividad_empleado_continuidad = fields.Integer('Empleado continuidad', compute='_compute_actividad_empleado')
+	# Como monotributista
+	actividad_monotributista_vigencia = fields.Boolean('Monotributista vigente', compute='_compute_actividad_monotributista')
+	actividad_monotributista_antiguedad = fields.Integer('Monotributista antiguedad', compute='_compute_actividad_monotributista')
+	actividad_monotributista_continuidad = fields.Integer('Monotributista continuidad', compute='_compute_actividad_monotributista')
+		# Como autonomo
+	actividad_autonomo_vigencia = fields.Boolean('Autonomo vigente', compute='_compute_actividad_autonomo')
+	actividad_autonomo_antiguedad = fields.Integer('Autonomo antiguedad', compute='_compute_actividad_autonomo')
+	actividad_autonomo_continuidad = fields.Integer('Autonomo continuidad', compute='_compute_actividad_autonomo')
+	actividad = fields.Selection([
+		('empleado', 'Empleado'),
+		('monotributista', 'Monotributista'),
+		('autonomo', 'Autonomo')], 'Actividad', compute='_compute_actividad')
+	actividad_vigencia = fields.Boolean('Vigencia de la actividad', compute='_compute_actividad')
 
 	@api.model
 	def from_dict(self, obj):
@@ -277,6 +297,105 @@ class RolPersonaActividad(models.Model):
 			# rec.impuestos_afip_id = self.env['rol.persona.actividad.impuestosafip'].from_dict(obj.get(u"impuestos_afip"))
 			rec = rec.id
 		return rec
+
+	@api.one
+	def _compute_fecha_informe(self):
+		informe_obj = self.pool.get('rol')
+		informe_ids = informe_obj.search(self.env.cr, self.env.uid, [
+			('persona_id.actividad_id', '=', self.id)
+		])
+		self.fecha_informe = informe_obj.browse(self.env.cr, self.env.uid, informe_ids[0]).fecha
+
+	@api.one
+	def _compute_actividad_empleado(self):
+		fecha_informe = datetime.strptime(self.fecha_informe, "%Y-%m-%d %H:%M:%S")
+		if len(self.relacion_dependencia_ids) > 0:
+			relacion_dependencia_desde = datetime.strptime(self.relacion_dependencia_ids[len(self.relacion_dependencia_ids)-1].desde, "%Y-%m-%d %H:%M:%S")
+			relacion_dependencia_hasta = datetime.strptime(self.relacion_dependencia_ids[0].hasta, "%Y-%m-%d %H:%M:%S")
+			diferencia = fecha_informe - relacion_dependencia_hasta
+			if diferencia.days < 120:
+				self.actividad_empleado_vigencia = True
+			diferencia = relacion_dependencia_hasta - relacion_dependencia_desde
+			self.actividad_empleado_antiguedad = diferencia.days/30
+			relacion_dependencia_ultimo_periodo_desde = datetime.strptime(self.relacion_dependencia_ids[0].desde, "%Y-%m-%d %H:%M:%S")
+			diferencia = relacion_dependencia_hasta - relacion_dependencia_ultimo_periodo_desde
+			self.actividad_empleado_continuidad = diferencia.days/30
+
+	@api.one
+	def _compute_actividad_monotributista(self):
+		fecha_informe = datetime.strptime(self.fecha_informe, "%Y-%m-%d %H:%M:%S")
+		if len(self.condicion_tributaria_ids) > 0:
+			monotributista_desde = datetime.strptime(self.condicion_tributaria_ids[len(self.condicion_tributaria_ids)-1].desde, "%Y-%m-%d %H:%M:%S")
+			monotributista_hasta = datetime.strptime(self.condicion_tributaria_ids[0].hasta, "%Y-%m-%d %H:%M:%S")
+			if self.condicion_tributaria_ids[0].monotributo != "NO INSCRIPTO":
+				diferencia = fecha_informe - monotributista_hasta
+				if diferencia.days < 15:
+					self.actividad_monotributista_vigencia = True
+			diferencia = monotributista_hasta - monotributista_desde
+			self.actividad_monotributista_antiguedad = diferencia.days/30
+			# continuidad en monotributo
+			continuidad = 0
+			i = 0
+			n = len(self.condicion_tributaria_ids)
+			while i < n:
+				desde = datetime.strptime(self.condicion_tributaria_ids[i].desde, "%Y-%m-%d %H:%M:%S")
+				hasta = datetime.strptime(self.condicion_tributaria_ids[i].hasta, "%Y-%m-%d %H:%M:%S")
+				diferencia = hasta - desde
+				continuidad += diferencia.days
+				if (i+1) < n:
+					hasta_anterior = datetime.strptime(self.condicion_tributaria_ids[i+1].hasta, "%Y-%m-%d %H:%M:%S")
+					diferencia = desde - hasta_anterior
+					if diferencia.days > 30:
+						# Lo concideramos NO continuidad
+						break
+				i += 1
+			self.actividad_monotributista_continuidad = continuidad/30
+
+	@api.one
+	def _compute_actividad_autonomo(self):
+		fecha_informe = datetime.strptime(self.fecha_informe, "%Y-%m-%d %H:%M:%S")
+		if len(self.autonomo_id) > 0 and self.autonomo_id.desde and self.autonomo_id.hasta:
+			autonomo_desde = datetime.strptime(self.autonomo_id.desde, "%Y-%m-%d %H:%M:%S")
+			autonomo_hasta = datetime.strptime(self.autonomo_id.hasta, "%Y-%m-%d %H:%M:%S")
+			diferencia = fecha_informe - autonomo_hasta
+			if diferencia.days < 15:
+				self.actividad_autonomo_vigencia = True
+			diferencia = autonomo_hasta - autonomo_desde
+			self.actividad_autonomo_antiguedad = diferencia.days/30
+			self.actividad_autonomo_continuidad = diferencia.days/30
+
+	@api.one
+	def _compute_actividad(self):
+		relacion_dependencia_hasta = False
+		monotributo_hasta = False
+		autonomo_hasta = False
+		fecha_mas_reciente = False
+		diferencia = False
+		fecha_actual = datetime.strptime(self.fecha_informe, "%Y-%m-%d %H:%M:%S")
+		if len(self.relacion_dependencia_ids) > 0:
+			relacion_dependencia_hasta = datetime.strptime(self.relacion_dependencia_ids[0].hasta, "%Y-%m-%d %H:%M:%S")
+			fecha_mas_reciente = relacion_dependencia_hasta
+			self.actividad = 'empleado'
+			diferencia = fecha_actual - relacion_dependencia_hasta
+			if diferencia.days < 120:
+				self.actividad_vigencia = True
+		if len(self.condicion_tributaria_ids) > 0:
+			if self.condicion_tributaria_ids[0].monotributo != "NO INSCRIPTO":
+				monotributo_hasta = datetime.strptime(self.condicion_tributaria_ids[0].hasta, "%Y-%m-%d %H:%M:%S")
+				if fecha_mas_reciente == False or fecha_mas_reciente < monotributo_hasta:
+					self.actividad = 'monotributista'
+					fecha_mas_reciente = monotributo_hasta
+					diferencia = fecha_actual - fecha_mas_reciente
+					if diferencia.days < 15:
+						self.actividad_vigencia = True
+		if len(self.autonomo_id) > 0 and self.autonomo_id.hasta != False:
+			autonomo_hasta = datetime.strptime(self.autonomo_id.hasta, "%Y-%m-%d %H:%M:%S")
+			if fecha_mas_reciente == False or fecha_mas_reciente < autonomo_hasta:
+				self.actividad = 'autonomo'
+				fecha_mas_reciente = autonomo_hasta
+				diferencia = fecha_actual - fecha_mas_reciente
+				if diferencia.days < 15:
+					self.actividad_vigencia = True
 
 class RolPersonaBancarizacionEntidadesHistorico(models.Model):
 	_name = 'rol.persona.bancarizacion.entidadeshistorico'
