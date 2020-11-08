@@ -27,9 +27,19 @@
 								<group></group>
 							</group>
 							<notebook>
+								<page name="generales" string="Generales">
+									<field name="general_ids">
+										<tree editable="true">
+											<field name="control" readonly='1'/>
+											<field name="accion" readonly='1'/>
+											<field name="motivo"/>
+										</tree>
+									</field>
+								</page>
 								<page name="sexo_edad" string="Sexo y edad">
 									<field name="sexo_edad_ids">
 										<tree editable="true">
+											<field name="control" readonly='1'/>
 											<field name="accion" readonly='1'/>
 											<field name="sexo"/>
 											<field name="edad_condicion"/>
@@ -40,6 +50,7 @@
 								<page name="actividad" string="Actividad">
 									<field name="actividad_ids">
 										<tree editable="true">
+											<field name="control" readonly='1'/>
 											<field name="accion" readonly='1'/>
 											<field name="actividad"/>
 											<field name="antiguedad" attrs="{'invisible': [('actividad', 'in', ['sin_actividad', 'jubilado_pensionado'])]}"/>
@@ -48,8 +59,20 @@
 									</field>
 									<label string="* Utilizar cero en antiguedad o continuidad para rechazar cualquier perdiodo sobre la actividad"/>
 								</page>
+								<page name="bancarizacion" string="Bancarizacion">
+									<field name="bancarizacion_ids">
+										<tree editable="true">
+											<field name="control" readonly='1'/>
+											<field name="accion" readonly='1'/>
+											<field name="situaciones_cantidad"/>
+											<field name="situaciones_tipo"/>
+											<field name="periodo"/>
+										</tree>
+									</field>
+									<label string="* Utilizar cero en cantidad de situaciones para rechazar si no tiene ninguna situacion mayor o igual que n."/>
+								</page>
 							</notebook>
-							<group string="Asignar">
+							<group string="Otorgar">
 								<field name="partner_tipo_id"/>
 								<field name="capacidad_pago_mensual"/>
 							</group>

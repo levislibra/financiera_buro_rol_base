@@ -33,6 +33,11 @@
                       <group>
                         <field name="solicitar_informe_enviar_a_revision"/>
 												<field name="solicitar_informe_dias"/>
+												<field name="asignar_identidad_rol"/>
+												<field name="asignar_domicilio_rol"/>
+												<field name="evaluar_cda_solicitar_informe"/>
+												<field name="evaluar_cda_enviar_a_revision"/>
+												<field name="asignar_cda_otorgamiento"/>
 												<field name="modelo_experto"/>
                       </group>
 									</group>

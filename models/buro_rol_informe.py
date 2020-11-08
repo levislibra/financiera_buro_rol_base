@@ -103,7 +103,12 @@ class ExtendsResPartnerRol(models.Model):
 					ValidationError("Falta DNI, CUIT o CUIL.")
 		else:
 			ValidationError("Falta configuracion Riesgo Online.")
-		self.check_cdas()
+		if rol_configuracion_id.evaluar_cda_solicitar_informe:
+			self.check_cdas()
+		if rol_configuracion_id.asignar_identidad_rol:
+			self.button_asignar_identidad_rol()
+		if rol_configuracion_id.asignar_domicilio_rol:
+			self.button_asignar_domicilio_rol()
 		return True
 
 	@api.one
@@ -145,7 +150,12 @@ class ExtendsResPartnerRol(models.Model):
 					ValidationError("Falta DNI, CUIT o CUIL.")
 		else:
 			ValidationError("Falta configuracion Riesgo Online.")
-		self.check_cdas()
+		if rol_configuracion_id.evaluar_cda_solicitar_informe:
+			self.check_cdas()
+		if rol_configuracion_id.asignar_identidad_rol:
+			self.button_asignar_identidad_rol()
+		if rol_configuracion_id.asignar_domicilio_rol:
+			self.button_asignar_domicilio_rol()
 		return True
 	
 	@api.one
@@ -160,8 +170,9 @@ class ExtendsResPartnerRol(models.Model):
 
 	@api.one
 	def _compute_rol_domicilio(self):
-		if len(self.rol_id.persona_id.domicilio_ids) > 0:
-			self.rol_domicilio = self.rol_id.persona_id.domicilio_ids[0].domicilio
+		for domicilio_id in self.rol_id.persona_id.domicilio_ids:
+			if domicilio_id.tipo == 'legal_real_ws':
+				self.rol_domicilio = domicilio_id.domicilio
 
 	@api.multi
 	def button_asignar_identidad_rol(self):
@@ -201,10 +212,14 @@ class ExtendsResPartnerRol(models.Model):
 
 	@api.one
 	def check_cdas(self):
+		rol_configuracion_id = self.company_id.rol_configuracion_id
 		if len(self.rol_id) > 0:
 			persona_id = self.rol_id.persona_id
 			sexo = persona_id.sexo
 			edad = persona_id.edad
+			# Generales
+			fallecido = persona_id.fallecido
+			perfil_letra = persona_id.perfil_id.letra
 			# Actividad
 			empleado_vigencia = persona_id.actividad_id.actividad_empleado_vigencia
 			monotributista_vigencia = persona_id.actividad_id.actividad_monotributista_vigencia
@@ -216,17 +231,22 @@ class ExtendsResPartnerRol(models.Model):
 			monotributista_continuidad = persona_id.actividad_id.actividad_monotributista_continuidad
 			autonomo_continuidad = persona_id.actividad_id.actividad_autonomo_continuidad
 			jubilado_pensionado = persona_id.jubilado
+			# Bancarizacion
+			resumen_situaciones_bancarias = persona_id.bancarizacion_id.resumen_situaciones_bancarias()
 			cda_ids = self.company_id.rol_configuracion_id.cda_ids
 			for cda_id in cda_ids:
-				if cda_id.activo and not cda_id.evaluar_cda(self.id, sexo, edad, empleado_vigencia, monotributista_vigencia, autonomo_vigencia,
-				empleado_antiguedad, monotributista_antiguedad, autonomo_antiguedad, 
-	 			empleado_continuidad, monotributista_continuidad, autonomo_continuidad, jubilado_pensionado):
-					self.rol_partner_tipo_id = cda_id.partner_tipo_id.id
-					self.rol_capacidad_pago_mensual = cda_id.capacidad_pago_mensual
-					self.partner_tipo_id = cda_id.partner_tipo_id.id
-					self.capacidad_pago_mensual = cda_id.capacidad_pago_mensual
-					self.rol_cda_aprobado_id = cda_id.id
-					break
+				if cda_id.activo:
+					cda_evaluacion = cda_id.evaluar_cda(self.id, fallecido, perfil_letra, sexo, edad, empleado_vigencia, monotributista_vigencia, autonomo_vigencia,
+						empleado_antiguedad, monotributista_antiguedad, autonomo_antiguedad, 
+						empleado_continuidad, monotributista_continuidad, autonomo_continuidad, jubilado_pensionado,
+						resumen_situaciones_bancarias)
+					if cda_evaluacion == 'aprobado' and rol_configuracion_id.asignar_cda_otorgamiento:
+						self.rol_partner_tipo_id = cda_id.partner_tipo_id.id
+						self.rol_capacidad_pago_mensual = cda_id.capacidad_pago_mensual
+						self.partner_tipo_id = cda_id.partner_tipo_id.id
+						self.capacidad_pago_mensual = cda_id.capacidad_pago_mensual
+						self.rol_cda_aprobado_id = cda_id.id
+						break
 
 class ExtendsFinancieraPrestamo(models.Model):
 	_name = 'financiera.prestamo'
@@ -238,4 +258,6 @@ class ExtendsFinancieraPrestamo(models.Model):
 			rol_configuracion_id = self.company_id.rol_configuracion_id
 			if rol_configuracion_id.solicitar_informe_enviar_a_revision:
 				self.partner_id.solicitar_informe_rol()
+			if rol_configuracion_id.evaluar_cda_enviar_a_revision:
+				self.partner_id.check_cdas()
 		super(ExtendsFinancieraPrestamo, self).enviar_a_revision()

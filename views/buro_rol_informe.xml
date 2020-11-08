@@ -173,7 +173,8 @@
 		<field name="name">rol.persona.bancarizacion.form</field>
 		<field name="model">rol.persona.bancarizacion</field>
 		<field name="arch" type="xml">
-			<form string="Bancarizacion" create="false" delete="false" edit="false">
+			<form string="Bancarizacion">
+				<!-- create="false" delete="false" edit="false" -->
 				<sheet>
 					<script>
 						$(document).ready(function(){
@@ -183,6 +184,7 @@
 					<group>
 						<group>
 							<!-- <field name="company_id" groups="base.group_erp_manager"/> -->
+							<field name="fecha_informe"/>
 							<field name="sin_mora_meses"/>
 							<field name="sin_mora_desde"/>
 						</group>
@@ -194,11 +196,13 @@
 								<group>
 									<div>
 										<field name="entidades_historico_ids">
-											<tree>
+											<tree editable="true">
 												<field name="entidad"/>
 												<field name="periodo"/>
 												<field name="situacion"/>
 												<field name="monto"/>
+												<field name="periodo_fecha"/>
+												<field name="periodo_meses"/>
 											</tree>
 										</field>
 									</div>
@@ -365,7 +369,12 @@
 										<field name="create_date" string="Fecha"/>
 										<field name="cda_id"/>
 										<field name="resultado"/>
-										<field name="detalle_ids" string="Rechazos"/>
+										<field name="detalle_ids" string="Rechazos">
+											<tree create='false' edit='false' delete='false'>
+												<field name='control'/>
+												<field name='name' string='Detalle'/>
+											</tree>
+										</field>
 									</sheet>
 								</form>
 							</field>
@@ -402,7 +411,7 @@
               <button name="button_asignar_identidad_rol" string="Asignar identidad ROL al Cliente" attrs="{'invisible': ['|', ('rol_cuit', '=', False), ('rol_name', '=', False)]}" type="object" confirm="Desea confirmar?"/>
               <field name="rol_domicilio" readonly="1"/>
               <button name="button_asignar_domicilio_rol" string="Asignar domicilio ROL al Cliente" attrs="{'invisible': [('rol_domicilio', '=', False)]}" type="object" confirm="Desea confirmar?"/>
-              <group col="2">
+              <!-- <group col="2">
                 <group col="1">
                   <label for="rol_experto_nombre" string="Modelo evaluado"/>
                   <div>
@@ -413,7 +422,7 @@
                 <group col="1">
                   <field name="rol_experto_resultado" readonly="1"/>
                 </group>
-              </group>
+              </group> -->
               <group col="2">
                 <group col="1">
                   <field name="rol_capacidad_pago_mensual" readonly="1"/>

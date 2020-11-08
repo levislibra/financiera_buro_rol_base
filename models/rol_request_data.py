@@ -403,6 +403,8 @@ class RolPersonaBancarizacionEntidadesHistorico(models.Model):
 	rol_persona_bancarizacion_id = fields.Many2one('rol.persona.bancarizacion', 'Bancarizacion')
 	entidad = fields.Char('Entidad')
 	periodo = fields.Char('Periodo')
+	periodo_fecha = fields.Datetime('Fecha periodo', compute='_compute_periodo_fecha')
+	periodo_meses = fields.Integer('Meses hasta fecha informe', compute='_compute_periodo_meses')
 	situacion = fields.Integer('Situacion')
 	monto = fields.Integer('Monto')
 
@@ -418,6 +420,17 @@ class RolPersonaBancarizacionEntidadesHistorico(models.Model):
 			}
 			rec = self.env['rol.persona.bancarizacion.entidadeshistorico'].create(values).id
 		return rec
+
+	@api.one
+	def _compute_periodo_fecha(self):
+		self.periodo_fecha = datetime.strptime('02/'+str(self.periodo), "%d/%m/%Y")
+
+	@api.one
+	def _compute_periodo_meses(self):
+		desde = datetime.strptime(self.periodo_fecha, "%Y-%m-%d 00:00:00")
+		hasta = datetime.strptime(self.rol_persona_bancarizacion_id.fecha_informe, "%Y-%m-%d 00:00:00")
+		diferencia = hasta - desde
+		self.periodo_meses = diferencia.days/30
 
 class RolPersonaBancarizacionChequesHistorico(models.Model):
 	_name = 'rol.persona.bancarizacion.chequeshistorico'
@@ -449,6 +462,7 @@ class RolPersonaBancarizacion(models.Model):
 	_name = 'rol.persona.bancarizacion'
 
 	name = fields.Char('Nombre', default='BANCARIZACION')
+	fecha_informe = fields.Datetime('Fecha informe', compute='_compute_fecha_informe')
 	entidades_historico_ids = fields.One2many('rol.persona.bancarizacion.entidadeshistorico', 'rol_persona_bancarizacion_id', 'Entidades historico')
 	cheques_historico_ids = fields.One2many('rol.persona.bancarizacion.chequeshistorico', 'rol_persona_bancarizacion_id', 'Cheques historico')
 	sin_mora_desde = fields.Char('Sin mora desde')
@@ -467,6 +481,48 @@ class RolPersonaBancarizacion(models.Model):
 			rec['cheques_historico_ids'] = from_list(self.env['rol.persona.bancarizacion.chequeshistorico'].from_dict, obj.get(u"cheques_historico"))
 			rec = rec.id
 		return rec
+
+	@api.one
+	def _compute_fecha_informe(self):
+		informe_obj = self.pool.get('rol')
+		informe_ids = informe_obj.search(self.env.cr, self.env.uid, [
+			('persona_id.bancarizacion_id', '=', self.id)
+		])
+		self.fecha_informe = informe_obj.browse(self.env.cr, self.env.uid, informe_ids[0]).fecha
+
+	def resumen_situaciones_bancarias(self):
+		ret = {
+			'ultimo_mes': [0,0,0,0,0,0],
+			'tres_meses': [0,0,0,0,0,0],
+			'seis_meses': [0,0,0,0,0,0],
+			'doce_meses': [0,0,0,0,0,0],
+		}
+		i = 0
+		periodo = 1
+		len_entidades_historico = len(self.entidades_historico_ids)
+		while periodo <= 12 and i < len_entidades_historico:
+			entidad_id = self.entidades_historico_ids[i]
+			if periodo == 1:
+				ret['ultimo_mes'][entidad_id.situacion-1] += 1
+				ret['tres_meses'][entidad_id.situacion-1] += 1
+				ret['seis_meses'][entidad_id.situacion-1] += 1
+				ret['doce_meses'][entidad_id.situacion-1] += 1
+			if periodo == 2 or periodo == 3:
+				ret['tres_meses'][entidad_id.situacion-1] += 1
+				ret['seis_meses'][entidad_id.situacion-1] += 1
+				ret['doce_meses'][entidad_id.situacion-1] += 1
+			if periodo == 4 or periodo == 5 or periodo == 6:
+				ret['seis_meses'][entidad_id.situacion-1] += 1
+				ret['doce_meses'][entidad_id.situacion-1] += 1
+			if periodo > 6 and periodo <= 12:
+				ret['doce_meses'][entidad_id.situacion-1] += 1
+			if (i+1) < len_entidades_historico:
+				if entidad_id.periodo != self.entidades_historico_ids[i+1].periodo:
+					periodo += 1
+			i += 1
+		return ret
+
+			
 
 class RolInforme(models.Model):
 	_name = 'rol.informe'

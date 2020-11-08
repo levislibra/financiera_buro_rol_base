@@ -16,7 +16,12 @@ class FinancieraBuroRolConfiguracion(models.Model):
 	saldo_informes = fields.Integer('Saldo Informes')
 	
 	solicitar_informe_enviar_a_revision = fields.Boolean('Solicitar informe al enviar a revision')
-	solicitar_informe_dias = fields.Integer('Dias para solicitar nuevo informe')
+	solicitar_informe_dias = fields.Integer('Dias para forzar solicitud de nuevo informe')
+	asignar_identidad_rol = fields.Boolean('Asignar identidad ROL al solicitar informe')
+	asignar_domicilio_rol = fields.Boolean('Asignar domicilio ROL al solicitar informe')
+	evaluar_cda_solicitar_informe = fields.Boolean('Evaluar CDAs al solicitar informe')
+	evaluar_cda_enviar_a_revision = fields.Boolean('Evaluar CDAs al enviar a revision')
+	asignar_cda_otorgamiento = fields.Boolean('Asignar otorgamientos de CDAs')
 	modelo_experto = fields.Char('Modelo experto a evaluar')
 	cda_ids = fields.One2many('financiera.buro.rol.cda', 'config_id', 'Modelos CDA')
 	company_id = fields.Many2one('res.company', 'Empresa', required=False, default=lambda self: self.env['res.company']._company_default_get('financiera.buro.rol.configuracion'))
