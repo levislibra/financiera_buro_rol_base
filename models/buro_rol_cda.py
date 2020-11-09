@@ -67,6 +67,8 @@ class FinancieraBuroRolCdaGeneral(models.Model):
 		('A', 'Perfil A'), ('B', 'Perfil B'), ('C', 'Perfil C'),
 		('D', 'Perfil D'), ('E', 'Perfil E'), ('F', 'Perfil F'),
 		('G', 'Perfil G')], 'Motivo')
+	company_id = fields.Many2one('res.company', 'Empresa', required=False,
+		default=lambda self: self.env['res.company']._company_default_get('financiera.buro.rol.cda.general'))
 
 	@api.one
 	def _compute_control(self):
@@ -111,7 +113,8 @@ class FinancieraBuroRolCdaSexoEdad(models.Model):
 	sexo = fields.Selection([('M', 'Masculino'), ('F', 'Femenino')], 'Sexo')
 	edad_condicion = fields.Selection([('menor', 'menor'), ('mayor', 'mayor')], 'Condicion')
 	edad = fields.Integer('Edad')
-	company_id = fields.Many2one('res.company', 'Empresa', required=False, default=lambda self: self.env['res.company']._company_default_get('financiera.buro.rol.cda.edad_sexo'))
+	company_id = fields.Many2one('res.company', 'Empresa', required=False,
+		default=lambda self: self.env['res.company']._company_default_get('financiera.buro.rol.cda.edad_sexo'))
 
 	@api.one
 	def _compute_control(self):
@@ -162,7 +165,8 @@ class FinancieraBuroRolCdaActividad(models.Model):
 	antiguedad = fields.Integer('Con meses de antiguedad menor a')
 	# continuidad_condicion = fields.Selection([('menor', 'y continuidad menor a')], 'Condicion', default='menor')
 	continuidad = fields.Integer('Con meses de continuidad menor a')
-	company_id = fields.Many2one('res.company', 'Empresa', required=False, default=lambda self: self.env['res.company']._company_default_get('financiera.buro.rol.cda.edad_sexo'))
+	company_id = fields.Many2one('res.company', 'Empresa', required=False,
+		default=lambda self: self.env['res.company']._company_default_get('financiera.buro.rol.cda.actividad'))
 
 	@api.one
 	def _compute_control(self):
@@ -271,7 +275,8 @@ class FinancieraBuroRolCdaBancarizacion(models.Model):
 		('tres_meses', 'Ultimos tres meses'),
 		('seis_meses', 'Ultimos seis meses'),
 		('doce_meses', 'Ultimos doce meses')], 'Periodo')
-	company_id = fields.Many2one('res.company', 'Empresa', required=False, default=lambda self: self.env['res.company']._company_default_get('financiera.buro.rol.cda.edad_sexo'))
+	company_id = fields.Many2one('res.company', 'Empresa', required=False,
+		default=lambda self: self.env['res.company']._company_default_get('financiera.buro.rol.cda.bancarizacion'))
 
 	@api.one
 	def _compute_control(self):
@@ -316,6 +321,8 @@ class FinancieraBuroRolCdaReporte(models.Model):
 		('aprobado', 'Aprobado'),
 		('rechazado', 'Rechazado')],
 		'Resultado', compute='_compute_resultado')
+	company_id = fields.Many2one('res.company', 'Empresa', required=False,
+		default=lambda self: self.env['res.company']._company_default_get('financiera.buro.rol.cda.reporte'))
 
 	@api.one
 	def _compute_resultado(self):
@@ -330,4 +337,6 @@ class FinancieraBuroRolCdaReporteDetalle(models.Model):
 	control = fields.Char('Codigo')
 	reporte_id = fields.Many2one('financiera.buro.rol.cda.reporte', 'Reporte')
 	name = fields.Char('Detalle')
+	company_id = fields.Many2one('res.company', 'Empresa', required=False,
+		default=lambda self: self.env['res.company']._company_default_get('financiera.buro.rol.cda.reporte.detalle'))
 

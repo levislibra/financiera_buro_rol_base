@@ -1,12 +1,61 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
     <!-- <data noupdate="0"> -->
-        <record id="bna_buro_rol_configuracion_rule" model="ir.rule">
-            <field name="name">ROL Configuracion multi-company</field>
-            <field name="model_id" ref="model_financiera_buro_rol_configuracion"/>
-            <field eval="True" name="global"/>
-            <field name="domain_force">[('company_id','child_of',[user.company_id.id])]</field>
-        </record>
-        
+			<record id="bna_buro_rol_configuracion_rule" model="ir.rule">
+					<field name="name">ROL Configuracion multi-company</field>
+					<field name="model_id" ref="model_financiera_buro_rol_configuracion"/>
+					<field eval="True" name="global"/>
+					<field name="domain_force">[('company_id','child_of',[user.company_id.id])]</field>
+			</record>
+
+			<record id="buro_rol_cda_rule" model="ir.rule">
+				<field name="name">ROL CDA multi-company</field>
+				<field name="model_id" ref="model_financiera_buro_rol_cda"/>
+				<field eval="True" name="global"/>
+				<field name="domain_force">[('company_id','child_of',[user.company_id.id])]</field>
+			</record>
+
+			<record id="buro_rol_cda_general_rule" model="ir.rule">
+				<field name="name">ROL CDA general multi-company</field>
+				<field name="model_id" ref="model_financiera_buro_rol_cda_general"/>
+				<field eval="True" name="global"/>
+				<field name="domain_force">[('company_id','child_of',[user.company_id.id])]</field>
+			</record>
+
+			<record id="buro_rol_cda_sexo_edad_rule" model="ir.rule">
+				<field name="name">ROL CDA sexo y edad multi-company</field>
+				<field name="model_id" ref="model_financiera_buro_rol_cda_sexo_edad"/>
+				<field eval="True" name="global"/>
+				<field name="domain_force">[('company_id','child_of',[user.company_id.id])]</field>
+			</record>
+
+			<record id="buro_rol_cda_actividad_rule" model="ir.rule">
+				<field name="name">ROL CDA actividad multi-company</field>
+				<field name="model_id" ref="model_financiera_buro_rol_cda_actividad"/>
+				<field eval="True" name="global"/>
+				<field name="domain_force">[('company_id','child_of',[user.company_id.id])]</field>
+			</record>
+
+			<record id="buro_rol_cda_bancarizacion_rule" model="ir.rule">
+				<field name="name">ROL CDA bancarizacion multi-company</field>
+				<field name="model_id" ref="model_financiera_buro_rol_cda_bancarizacion"/>
+				<field eval="True" name="global"/>
+				<field name="domain_force">[('company_id','child_of',[user.company_id.id])]</field>
+			</record>
+
+			<record id="buro_rol_cda_reporte_rule" model="ir.rule">
+				<field name="name">ROL CDA reporte multi-company</field>
+				<field name="model_id" ref="model_financiera_buro_rol_cda_reporte"/>
+				<field eval="True" name="global"/>
+				<field name="domain_force">[('company_id','child_of',[user.company_id.id])]</field>
+			</record>
+
+			<record id="buro_rol_cda_reporte_detalle_rule" model="ir.rule">
+				<field name="name">ROL CDA reporte detalle multi-company</field>
+				<field name="model_id" ref="model_financiera_buro_rol_cda_reporte_detalle"/>
+				<field eval="True" name="global"/>
+				<field name="domain_force">[('company_id','child_of',[user.company_id.id])]</field>
+			</record>
+
     <!-- </data>  -->
 </openerp>

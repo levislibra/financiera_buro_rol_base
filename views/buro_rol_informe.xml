@@ -173,8 +173,7 @@
 		<field name="name">rol.persona.bancarizacion.form</field>
 		<field name="model">rol.persona.bancarizacion</field>
 		<field name="arch" type="xml">
-			<form string="Bancarizacion">
-				<!-- create="false" delete="false" edit="false" -->
+			<form string="Bancarizacion" create="false" delete="false" edit="false">
 				<sheet>
 					<script>
 						$(document).ready(function(){
