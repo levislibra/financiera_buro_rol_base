@@ -7,9 +7,12 @@
       <field name="model">rol</field>
       <field name="arch" type="xml">
         <tree create="false" delete="false" edit="false">
-          <field name="fecha"/>
-          <field name="informe_id"/>
-          <field name="persona_id"/>
+					<field name="fecha"/>
+					<field name="partner_id"/>
+          <field name="informe_id" string="Datos"/>
+					<field name="persona_id" string="Informe ROL"/>
+					<field name="state"/>
+					<field name="company_id" groups="base.group_erp_manager"/>
         </tree>
       </field>
     </record>

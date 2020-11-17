@@ -14,7 +14,7 @@ class ExtendsResPartnerRol(models.Model):
 	_inherit = 'res.partner'
 
 	rol_ids = fields.One2many('rol', 'partner_id', "ROL")
-	rol_id = fields.Many2one('rol', "ROL - Consulta actual", compute='_compute_rol_consulta_actual')
+	rol_id = fields.Many2one('rol', "ROL - Consulta actual")
 	# buro_rol_informe_ids = fields.One2many('financiera.buro.rol.informe', 'partner_id', 'Informes')
 	rol_modelo = fields.Char('Rol modelo')
 	rol_name = fields.Char('Nombre', related='rol_id.persona_id.nombre')
@@ -98,13 +98,21 @@ class ExtendsResPartnerRol(models.Model):
 					url = url + cuit
 					r = requests.get(url, params=params)
 					data = r.json()
-					self.rol_ids = [self.env['rol'].from_dict(data)]
+					new_rol_id = self.env['rol'].from_dict(data)
+					if len(new_rol_id.persona_id) > 0:
+						new_rol_id.state = 'OK'
+						self.rol_ids = [new_rol_id.id]
+						self.rol_id = new_rol_id
+					elif 'error' in data:
+						new_rol_id.state = "Error: " + data['error']
+						self.rol_id = None
+					else:
+						new_rol_id.state = 'Error desconocido al solicitar informe'
+						self.rol_id = None
 				else:
 					ValidationError("Falta DNI, CUIT o CUIL.")
 		else:
 			ValidationError("Falta configuracion Riesgo Online.")
-		if rol_configuracion_id.evaluar_cda_solicitar_informe:
-			self.check_cdas()
 		if rol_configuracion_id.asignar_identidad_rol:
 			self.button_asignar_identidad_rol()
 		if rol_configuracion_id.asignar_domicilio_rol:
@@ -120,7 +128,7 @@ class ExtendsResPartnerRol(models.Model):
 		return self.rol_experto_resultado
 
 	# Funcion documentada en la API!
-	def solicitar_informe_rol(self):
+	def solicitar_informe_rol(self, forzar=False):
 		rol_configuracion_id = self.company_id.rol_configuracion_id
 		if rol_configuracion_id:
 			dias_ultimo_informe = 0
@@ -129,7 +137,7 @@ class ExtendsResPartnerRol(models.Model):
 				fecha_actual = datetime.now()
 				diferencia = fecha_actual - fecha_ultimo_informe
 				dias_ultimo_informe = diferencia.days
-			if len(self.rol_id) == 0 or self.rol_id.fecha == False or dias_ultimo_informe >= rol_configuracion_id.solicitar_informe_dias:
+			if forzar or len(self.rol_id) == 0 or self.rol_id.fecha == False or dias_ultimo_informe >= rol_configuracion_id.solicitar_informe_dias:
 				params = {
 					'username': rol_configuracion_id.usuario,
 					'password': rol_configuracion_id.password,
@@ -144,14 +152,23 @@ class ExtendsResPartnerRol(models.Model):
 					url = 'https://informe.riesgoonline.com/api/informes/solicitar/'
 					url = url + cuit
 					r = requests.get(url, params=params)
-					data = r.json()
-					self.rol_ids = [self.env['rol'].from_dict(data)]
+					if r.status_code == 200:
+						data = r.json()
+						new_rol_id = self.env['rol'].from_dict(data)
+						if len(new_rol_id.persona_id) > 0:
+							new_rol_id.state = 'OK'
+							self.rol_ids = [new_rol_id.id]
+							self.rol_id = new_rol_id
+						elif 'error' in data:
+							new_rol_id.state = "Error: " + data['error']
+							self.rol_id = None
+						else:
+							new_rol_id.state = 'Error al solicitar informe'
+							self.rol_id = None
 				else:
 					ValidationError("Falta DNI, CUIT o CUIL.")
 		else:
 			ValidationError("Falta configuracion Riesgo Online.")
-		if rol_configuracion_id.evaluar_cda_solicitar_informe:
-			self.check_cdas()
 		if rol_configuracion_id.asignar_identidad_rol:
 			self.button_asignar_identidad_rol()
 		if rol_configuracion_id.asignar_domicilio_rol:
@@ -160,13 +177,9 @@ class ExtendsResPartnerRol(models.Model):
 	
 	@api.one
 	def button_solicitar_informe_rol(self):
-		self.solicitar_informe_rol()
+		forzar = self.company_id.rol_configuracion_id.forzar_solicitud
+		self.solicitar_informe_rol(forzar)
 		return {'type': 'ir.actions.do_nothing'}
-
-	@api.one
-	def _compute_rol_consulta_actual(self):
-		if len(self.rol_ids) > 0:
-			self.rol_id = self.rol_ids[0]
 
 	@api.one
 	def _compute_rol_domicilio(self):
@@ -264,7 +277,9 @@ class ExtendsFinancieraPrestamo(models.Model):
 		if len(self.company_id.rol_configuracion_id) > 0:
 			rol_configuracion_id = self.company_id.rol_configuracion_id
 			if rol_configuracion_id.solicitar_informe_enviar_a_revision:
-				self.partner_id.solicitar_informe_rol()
+				origen_ids = [g.id for g in rol_configuracion_id.origen_ids]
+				if self.origen_id.id in origen_ids:
+					self.partner_id.solicitar_informe_rol()
 			if rol_configuracion_id.evaluar_cda_enviar_a_revision:
 				self.partner_id.check_cdas()
 		super(ExtendsFinancieraPrestamo, self).enviar_a_revision()

@@ -855,6 +855,8 @@ class Rol(models.Model):
 	informe_id = fields.Many2one('rol.informe', 'Informe')
 	persona_id = fields.Many2one('rol.persona', 'Persona')
 	fecha = fields.Datetime('Fecha', related='informe_id.fecha_hora')
+	state = fields.Char('Estado')
+	company_id = fields.Many2one('res.company', 'Empresa', default=lambda self: self.env['res.company']._company_default_get('rol'))
 	
 			
 	@api.model
@@ -865,5 +867,5 @@ class Rol(models.Model):
 				'informe_id': self.env['rol.informe'].from_dict(obj.get(u"informe")),
 				'persona_id': self.env['rol.persona'].from_dict(obj.get(u"persona")),
 			}
-			rec = self.env['rol'].create(values).id
+			rec = self.env['rol'].create(values)
 		return rec
