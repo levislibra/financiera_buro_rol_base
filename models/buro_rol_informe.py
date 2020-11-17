@@ -103,7 +103,7 @@ class ExtendsResPartnerRol(models.Model):
 					if len(new_rol_id.persona_id) > 0:
 						new_rol_id.state = 'OK'
 						self.rol_ids = [new_rol_id.id]
-						self.rol_id = new_rol_id
+						self.rol_id = new_rol_id.id
 					elif 'error' in data:
 						new_rol_id.state = "Error: " + data['mensaje']
 						self.rol_id = None
@@ -161,7 +161,7 @@ class ExtendsResPartnerRol(models.Model):
 						if len(new_rol_id.persona_id) > 0:
 							new_rol_id.state = 'OK'
 							self.rol_ids = [new_rol_id.id]
-							self.rol_id = new_rol_id
+							self.rol_id = new_rol_id.id
 						elif 'error' in data:
 							new_rol_id.state = "Error: " + data['mensaje']
 							self.rol_id = None

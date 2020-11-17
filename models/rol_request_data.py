@@ -152,7 +152,7 @@ class Autonomo(models.Model):
 class RolPersonaActividadCondicionTributaria(models.Model):
 	_name = 'rol.persona.actividad.condiciontributaria'
 
-	_order = 'hasta desc'
+	# _order = 'hasta desc'
 	rol_persona_actividad_id = fields.Many2one('rol.persona.actividad', 'Actividad')
 	monotributo = fields.Char('Monotributo')
 	actividad = fields.Char('Actividad')
@@ -232,7 +232,7 @@ class Ingresos:
 class RelacionDependencia(models.Model):
 	_name = 'rol.persona.actividad.relaciondependencia'
 
-	_order = 'hasta desc'
+	# _order = 'hasta desc'
 	rol_persona_actividad_id = fields.Many2one('rol.persona.actividad')
 	rol_id = fields.Char('Rol Id')
 	desde = fields.Datetime('Desde')
@@ -263,7 +263,7 @@ class RolPersonaActividad(models.Model):
 	actividades_afip_ids = fields.One2many('rol.persona.actividad.actividadesafip', 'rol_persona_actividad_id', 'Actividades afip')
 	condicion_tributaria_ids = fields.One2many('rol.persona.actividad.condiciontributaria', 'rol_persona_actividad_id', 'Condicion tributaria')
 	# impuestos_afip_id = fields.Many2one('rol.persona.actividad.impuestosafip', 'Impuestos afip')
-	fecha_informe = fields.Datetime('Fecha informe')
+	fecha_informe = fields.Datetime('Fecha informe', compute='_compute_fecha_informe')
 	# Como empleado
 	actividad_empleado_vigencia = fields.Boolean('Empleado vigente', compute='_compute_actividad_empleado')
 	actividad_empleado_antiguedad = fields.Integer('Empleado antiguedad', compute='_compute_actividad_empleado')
@@ -283,11 +283,10 @@ class RolPersonaActividad(models.Model):
 	actividad_vigencia = fields.Boolean('Vigencia de la actividad', compute='_compute_actividad')
 
 	@api.model
-	def from_dict(self, obj, fecha_informe):
+	def from_dict(self, obj):
 		rec = False
 		if isinstance(obj, dict):
 			rec = self.env['rol.persona.actividad'].create({})
-			rec.fecha_informe = fecha_informe
 			rec.empleado_publico = from_bool(obj.get(u"empleado_publico"))
 			rec.empleador_id = self.env['rol.persona.actividad.empleador'].from_dict(obj.get(u"empleador"))
 			rec.autonomo_id = self.env['rol.persona.actividad.autonomo'].from_dict(obj.get(u"autonomo"))
@@ -298,6 +297,14 @@ class RolPersonaActividad(models.Model):
 			# rec.impuestos_afip_id = self.env['rol.persona.actividad.impuestosafip'].from_dict(obj.get(u"impuestos_afip"))
 			rec = rec.id
 		return rec
+
+	@api.one
+	def _compute_fecha_informe(self):
+		informe_obj = self.pool.get('rol')
+		informe_ids = informe_obj.search(self.env.cr, self.env.uid, [
+			('persona_id.actividad_id', '=', self.id)
+		])
+		self.fecha_informe = informe_obj.browse(self.env.cr, self.env.uid, informe_ids[0]).fecha
 
 	@api.one
 	def _compute_actividad_empleado(self):
@@ -317,10 +324,11 @@ class RolPersonaActividad(models.Model):
 	@api.one
 	def _compute_actividad_monotributista(self):
 		fecha_informe = datetime.strptime(self.fecha_informe, "%Y-%m-%d %H:%M:%S")
-		if len(self.condicion_tributaria_ids) > 0:
-			monotributista_desde = datetime.strptime(self.condicion_tributaria_ids[len(self.condicion_tributaria_ids)-1].desde, "%Y-%m-%d %H:%M:%S")
-			monotributista_hasta = datetime.strptime(self.condicion_tributaria_ids[0].hasta, "%Y-%m-%d %H:%M:%S")
-			if self.condicion_tributaria_ids[0].monotributo != "NO INSCRIPTO":
+		len_condicion_tributaria = len(self.condicion_tributaria_ids)
+		if len_condicion_tributaria > 0:
+			monotributista_desde = datetime.strptime(self.condicion_tributaria_ids[0].desde, "%Y-%m-%d %H:%M:%S")
+			monotributista_hasta = datetime.strptime(self.condicion_tributaria_ids[len_condicion_tributaria-1].hasta, "%Y-%m-%d %H:%M:%S")
+			if self.condicion_tributaria_ids[len_condicion_tributaria-1].monotributo != "NO INSCRIPTO":
 				diferencia = fecha_informe - monotributista_hasta
 				if diferencia.days < 15:
 					self.actividad_monotributista_vigencia = True
@@ -328,20 +336,19 @@ class RolPersonaActividad(models.Model):
 			self.actividad_monotributista_antiguedad = diferencia.days/30
 			# continuidad en monotributo
 			continuidad = 0
-			i = 0
-			n = len(self.condicion_tributaria_ids)
-			while i < n:
+			i = len_condicion_tributaria-1
+			while i >= 0:
 				desde = datetime.strptime(self.condicion_tributaria_ids[i].desde, "%Y-%m-%d %H:%M:%S")
 				hasta = datetime.strptime(self.condicion_tributaria_ids[i].hasta, "%Y-%m-%d %H:%M:%S")
 				diferencia = hasta - desde
 				continuidad += diferencia.days
-				if (i+1) < n:
-					hasta_anterior = datetime.strptime(self.condicion_tributaria_ids[i+1].hasta, "%Y-%m-%d %H:%M:%S")
+				if (i-1) >= 0:
+					hasta_anterior = datetime.strptime(self.condicion_tributaria_ids[i-1].hasta, "%Y-%m-%d %H:%M:%S")
 					diferencia = desde - hasta_anterior
 					if diferencia.days > 30:
 						# Lo concideramos NO continuidad
 						break
-				i += 1
+				i -= 1
 			self.actividad_monotributista_continuidad = continuidad/30
 
 	@api.one
@@ -455,18 +462,17 @@ class RolPersonaBancarizacion(models.Model):
 	_name = 'rol.persona.bancarizacion'
 
 	name = fields.Char('Nombre', default='BANCARIZACION')
-	fecha_informe = fields.Datetime('Fecha informe')
+	fecha_informe = fields.Datetime('Fecha informe', compute='_compute_fecha_informe')
 	entidades_historico_ids = fields.One2many('rol.persona.bancarizacion.entidadeshistorico', 'rol_persona_bancarizacion_id', 'Entidades historico')
 	cheques_historico_ids = fields.One2many('rol.persona.bancarizacion.chequeshistorico', 'rol_persona_bancarizacion_id', 'Cheques historico')
 	sin_mora_desde = fields.Char('Sin mora desde')
 	sin_mora_meses = fields.Integer('Meses sin mora')
 
 	@api.model
-	def from_dict(self, obj, fecha_informe):
+	def from_dict(self, obj):
 		rec = False
 		if isinstance(obj, dict):
 			values = {
-				'fecha_informe': fecha_informe,
 				'sin_mora_desde': from_str(obj.get(u"sin_mora_desde")),
 				'sin_mora_meses': from_int(obj.get(u"sin_mora_meses")),
 			}
@@ -475,6 +481,14 @@ class RolPersonaBancarizacion(models.Model):
 			rec['cheques_historico_ids'] = from_list(self.env['rol.persona.bancarizacion.chequeshistorico'].from_dict, obj.get(u"cheques_historico"))
 			rec = rec.id
 		return rec
+
+	@api.one
+	def _compute_fecha_informe(self):
+		informe_obj = self.pool.get('rol')
+		informe_ids = informe_obj.search(self.env.cr, self.env.uid, [
+			('persona_id.bancarizacion_id', '=', self.id)
+		])
+		self.fecha_informe = informe_obj.browse(self.env.cr, self.env.uid, informe_ids[0]).fecha
 
 	def resumen_situaciones_bancarias(self):
 		ret = {
@@ -530,7 +544,6 @@ class RolInforme(models.Model):
 			rec = self.env['rol.informe'].create(values).id
 		return rec
 
-# Falta
 class Juicio(models.Model):
 	_name = 'rol.juicio'
 
@@ -793,7 +806,6 @@ class RolPersona(models.Model):
 	_name = 'rol.persona'
 	
 	_rec_name = 'nombre'
-	fecha_informe = fields.Datetime('Fecha informe')
 	rol_id = fields.Char("Rol Id")
 	nombre = fields.Char('Nombre')
 	sexo = fields.Char('Sexo')
@@ -812,15 +824,14 @@ class RolPersona(models.Model):
 	marca_ids = fields.One2many('rol.persona.marca', 'rol_persona_id', 'Marcas')
 	perfil_id = fields.Many2one('rol.persona.perfil', 'Perfil')
 	actividad_id = fields.Many2one('rol.persona.actividad', 'Actividad')
-	experto_id = fields.Many2one('rol.experto', "Experto")
 	judicial_id = fields.Many2one('rol.judicial', 'Judicial')
+	experto_id = fields.Many2one('rol.experto', "Experto")
 
 	@api.model
-	def from_dict(self, obj, fecha_informe):
+	def from_dict(self, obj):
 		rec = False
 		if isinstance(obj, dict):
 			values = {
-				'fecha_informe': fecha_informe,
 				'rol_id': str(from_int(obj.get(u"id"))),
 				'nombre': from_str(obj.get(u"nombre")),
 				'sexo': from_str(obj.get(u"sexo")),
@@ -839,9 +850,9 @@ class RolPersona(models.Model):
 			rec.personas_relacionada_ids = from_list(self.env['rol.persona.personas'].from_dict, obj.get(u"personas_relacionadas"))
 			rec.marca_ids = from_list(self.env['rol.persona.marca'].from_dict, obj.get(u"marcas"))
 			rec.dominios_nic_ids = from_list(self.env['rol.persona.dominiosnic'].from_dict, obj.get(u"dominios_nic"))
-			rec.bancarizacion_id = self.env['rol.persona.bancarizacion'].from_dict(obj.get(u"bancarizacion"), fecha_informe)
+			rec.bancarizacion_id = self.env['rol.persona.bancarizacion'].from_dict(obj.get(u"bancarizacion"))
 			rec.perfil_id = self.env['rol.persona.perfil'].from_dict(obj.get(u"perfil"))
-			rec.actividad_id = self.env['rol.persona.actividad'].from_dict(obj.get(u"actividad"), fecha_informe)
+			rec.actividad_id = self.env['rol.persona.actividad'].from_dict(obj.get(u"actividad"))
 			rec.experto_id = self.env['rol.experto'].from_dict(obj.get(u"experto"))
 			rec.judicial_id = self.env['rol.judicial'].from_dict(obj.get(u"judicial"))
 			rec = rec.id
@@ -865,5 +876,5 @@ class Rol(models.Model):
 		if isinstance(obj, dict):
 			rec = self.env['rol'].create({})
 			rec.informe_id = self.env['rol.informe'].from_dict(obj.get(u"informe"))
-			rec.persona_id = self.env['rol.persona'].from_dict(obj.get(u"persona"), rec.fecha)
+			rec.persona_id = self.env['rol.persona'].from_dict(obj.get(u"persona"))
 		return rec
