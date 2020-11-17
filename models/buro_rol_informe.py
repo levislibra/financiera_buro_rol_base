@@ -76,7 +76,7 @@ class ExtendsResPartnerRol(models.Model):
 		return ret
 
 	# Funcion documentada en la API!
-	def consultar_informe_rol(self):
+	def consultar_informe_rol(self, forzar=False):
 		rol_configuracion_id = self.company_id.rol_configuracion_id
 		if rol_configuracion_id:
 			dias_ultimo_informe = 0
@@ -85,7 +85,7 @@ class ExtendsResPartnerRol(models.Model):
 				fecha_actual = datetime.now()
 				diferencia = fecha_actual - fecha_ultimo_informe
 				dias_ultimo_informe = diferencia.days
-			if len(self.rol_id) == 0 or self.rol_id.fecha == False or dias_ultimo_informe >= rol_configuracion_id.solicitar_informe_dias:
+			if forzar or len(self.rol_id) == 0 or self.rol_id.fecha == False or dias_ultimo_informe >= rol_configuracion_id.solicitar_informe_dias:
 				params = {
 					'username': rol_configuracion_id.usuario,
 					'password': rol_configuracion_id.password,
@@ -99,12 +99,13 @@ class ExtendsResPartnerRol(models.Model):
 					r = requests.get(url, params=params)
 					data = r.json()
 					new_rol_id = self.env['rol'].from_dict(data)
+					new_rol_id.partner_id = self.id
 					if len(new_rol_id.persona_id) > 0:
 						new_rol_id.state = 'OK'
 						self.rol_ids = [new_rol_id.id]
 						self.rol_id = new_rol_id
 					elif 'error' in data:
-						new_rol_id.state = "Error: " + data['error']
+						new_rol_id.state = "Error: " + data['mensaje']
 						self.rol_id = None
 					else:
 						new_rol_id.state = 'Error desconocido al solicitar informe'
@@ -121,7 +122,8 @@ class ExtendsResPartnerRol(models.Model):
 
 	@api.one
 	def button_consultar_informe_rol(self):
-		self.consultar_informe_rol()
+		forzar = self.company_id.rol_configuracion_id.forzar_solicitud
+		self.consultar_informe_rol(forzar)
 		return {'type': 'ir.actions.do_nothing'}
 
 	def consultar_resultado_informe_rol(self):
@@ -155,12 +157,13 @@ class ExtendsResPartnerRol(models.Model):
 					if r.status_code == 200:
 						data = r.json()
 						new_rol_id = self.env['rol'].from_dict(data)
+						new_rol_id.partner_id = self.id
 						if len(new_rol_id.persona_id) > 0:
 							new_rol_id.state = 'OK'
 							self.rol_ids = [new_rol_id.id]
 							self.rol_id = new_rol_id
 						elif 'error' in data:
-							new_rol_id.state = "Error: " + data['error']
+							new_rol_id.state = "Error: " + data['mensaje']
 							self.rol_id = None
 						else:
 							new_rol_id.state = 'Error al solicitar informe'

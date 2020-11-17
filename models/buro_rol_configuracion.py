@@ -18,7 +18,7 @@ class FinancieraBuroRolConfiguracion(models.Model):
 	solicitar_informe_enviar_a_revision = fields.Boolean('Solicitar informe al enviar a revision')
 	origen_ids = fields.Many2many('financiera.prestamo.origen', 'financiera_origen_configrol_rel', 'origen_id', 'config_id', string='Solicitar informe al enviar a revision si el origen es')
 	solicitar_informe_dias = fields.Integer('Dias para forzar solicitud de nuevo informe')
-	forzar_solicitud = fields.Boolean('Forzar solicitud manual')
+	forzar_solicitud = fields.Boolean('Forzar solicitud/consulta manual')
 	asignar_identidad_rol = fields.Boolean('Asignar identidad ROL al solicitar informe')
 	asignar_domicilio_rol = fields.Boolean('Asignar domicilio ROL al solicitar informe')
 	evaluar_cda_enviar_a_revision = fields.Boolean('Evaluar CDAs al enviar a revision')

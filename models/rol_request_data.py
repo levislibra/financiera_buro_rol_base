@@ -263,7 +263,7 @@ class RolPersonaActividad(models.Model):
 	actividades_afip_ids = fields.One2many('rol.persona.actividad.actividadesafip', 'rol_persona_actividad_id', 'Actividades afip')
 	condicion_tributaria_ids = fields.One2many('rol.persona.actividad.condiciontributaria', 'rol_persona_actividad_id', 'Condicion tributaria')
 	# impuestos_afip_id = fields.Many2one('rol.persona.actividad.impuestosafip', 'Impuestos afip')
-	fecha_informe = fields.Datetime('Fecha informe', compute='_compute_fecha_informe')
+	fecha_informe = fields.Datetime('Fecha informe')
 	# Como empleado
 	actividad_empleado_vigencia = fields.Boolean('Empleado vigente', compute='_compute_actividad_empleado')
 	actividad_empleado_antiguedad = fields.Integer('Empleado antiguedad', compute='_compute_actividad_empleado')
@@ -283,10 +283,11 @@ class RolPersonaActividad(models.Model):
 	actividad_vigencia = fields.Boolean('Vigencia de la actividad', compute='_compute_actividad')
 
 	@api.model
-	def from_dict(self, obj):
+	def from_dict(self, obj, fecha_informe):
 		rec = False
 		if isinstance(obj, dict):
 			rec = self.env['rol.persona.actividad'].create({})
+			rec.fecha_informe = fecha_informe
 			rec.empleado_publico = from_bool(obj.get(u"empleado_publico"))
 			rec.empleador_id = self.env['rol.persona.actividad.empleador'].from_dict(obj.get(u"empleador"))
 			rec.autonomo_id = self.env['rol.persona.actividad.autonomo'].from_dict(obj.get(u"autonomo"))
@@ -297,14 +298,6 @@ class RolPersonaActividad(models.Model):
 			# rec.impuestos_afip_id = self.env['rol.persona.actividad.impuestosafip'].from_dict(obj.get(u"impuestos_afip"))
 			rec = rec.id
 		return rec
-
-	@api.one
-	def _compute_fecha_informe(self):
-		informe_obj = self.pool.get('rol')
-		informe_ids = informe_obj.search(self.env.cr, self.env.uid, [
-			('persona_id.actividad_id', '=', self.id)
-		])
-		self.fecha_informe = informe_obj.browse(self.env.cr, self.env.uid, informe_ids[0]).fecha
 
 	@api.one
 	def _compute_actividad_empleado(self):
@@ -462,17 +455,18 @@ class RolPersonaBancarizacion(models.Model):
 	_name = 'rol.persona.bancarizacion'
 
 	name = fields.Char('Nombre', default='BANCARIZACION')
-	fecha_informe = fields.Datetime('Fecha informe', compute='_compute_fecha_informe')
+	fecha_informe = fields.Datetime('Fecha informe')
 	entidades_historico_ids = fields.One2many('rol.persona.bancarizacion.entidadeshistorico', 'rol_persona_bancarizacion_id', 'Entidades historico')
 	cheques_historico_ids = fields.One2many('rol.persona.bancarizacion.chequeshistorico', 'rol_persona_bancarizacion_id', 'Cheques historico')
 	sin_mora_desde = fields.Char('Sin mora desde')
 	sin_mora_meses = fields.Integer('Meses sin mora')
 
 	@api.model
-	def from_dict(self, obj):
+	def from_dict(self, obj, fecha_informe):
 		rec = False
 		if isinstance(obj, dict):
 			values = {
+				'fecha_informe': fecha_informe,
 				'sin_mora_desde': from_str(obj.get(u"sin_mora_desde")),
 				'sin_mora_meses': from_int(obj.get(u"sin_mora_meses")),
 			}
@@ -481,14 +475,6 @@ class RolPersonaBancarizacion(models.Model):
 			rec['cheques_historico_ids'] = from_list(self.env['rol.persona.bancarizacion.chequeshistorico'].from_dict, obj.get(u"cheques_historico"))
 			rec = rec.id
 		return rec
-
-	@api.one
-	def _compute_fecha_informe(self):
-		informe_obj = self.pool.get('rol')
-		informe_ids = informe_obj.search(self.env.cr, self.env.uid, [
-			('persona_id.bancarizacion_id', '=', self.id)
-		])
-		self.fecha_informe = informe_obj.browse(self.env.cr, self.env.uid, informe_ids[0]).fecha
 
 	def resumen_situaciones_bancarias(self):
 		ret = {
@@ -545,34 +531,44 @@ class RolInforme(models.Model):
 		return rec
 
 # Falta
-class Juicio:
-	def __init__(self, fecha, provincia, rol, texto):
-			self.fecha = fecha
-			self.provincia = provincia
-			self.rol = rol
-			self.texto = texto
+class Juicio(models.Model):
+	_name = 'rol.juicio'
 
-	@staticmethod
-	def from_dict(obj):
+	judicial_id = fields.Many2one('rol.judicial', 'Judicial')
+	fecha = fields.Datetime('Fecha')
+	provincia = fields.Char("Provincia")
+	rol = fields.Char("Rol")
+	texto = fields.Char('Texto')
+
+	@api.model
+	def from_dict(self, obj):
+		rec = False
 		if isinstance(obj, dict):
-			fecha = from_str(obj.get(u"fecha"))
-			provincia = from_str(obj.get(u"provincia"))
-			rol = from_str(obj.get(u"rol"))
-			texto = from_str(obj.get(u"texto"))
-			return Juicio(fecha, provincia, rol, texto)
-# Falta
-class Judicial:
-	def __init__(self, juicios, concursos_y_quiebras):
-			self.juicios = juicios
-			self.concursos_y_quiebras = concursos_y_quiebras
+			values = {
+				'fecha': from_str(obj.get(u"fecha")),
+				'provincia': from_str(obj.get(u"provincia")),
+				'rol': from_str(obj.get(u"rol")),
+				'texto': from_str(obj.get(u"texto")),
+			}
+			rec = self.env['rol.juicio'].create(values).id
+		return rec
 
-	@staticmethod
-	def from_dict(obj):
+class Judicial(models.Model):
+	_name = 'rol.judicial'
+
+	juicio_ids = fields.One2many('rol.juicio', 'judicial_id', 'Juicios')
+	# concursos_y_quiebras = concursos_y_quiebras
+
+	@api.model
+	def from_dict(self, obj):
+		rec = False
 		if isinstance(obj, dict):
-			juicios = from_list(Juicio.from_dict, obj.get(u"juicios"))
-			concursos_y_quiebras = from_list(lambda x: x, obj.get(u"concursos_y_quiebras"))
-			return Judicial(juicios, concursos_y_quiebras)
-
+			values = {
+				'juicio_ids': from_list(self.env['rol.juicio'].from_dict, obj.get(u"juicios")),
+				# concursos_y_quiebras = from_list(lambda x: x, obj.get(u"concursos_y_quiebras"))
+			}
+			rec = self.env['rol.judicial'].create(values).id
+			return rec
 
 class RolPersonaDomicilio(models.Model):
 	_name = 'rol.persona.domicilio'
@@ -797,6 +793,7 @@ class RolPersona(models.Model):
 	_name = 'rol.persona'
 	
 	_rec_name = 'nombre'
+	fecha_informe = fields.Datetime('Fecha informe')
 	rol_id = fields.Char("Rol Id")
 	nombre = fields.Char('Nombre')
 	sexo = fields.Char('Sexo')
@@ -816,12 +813,14 @@ class RolPersona(models.Model):
 	perfil_id = fields.Many2one('rol.persona.perfil', 'Perfil')
 	actividad_id = fields.Many2one('rol.persona.actividad', 'Actividad')
 	experto_id = fields.Many2one('rol.experto', "Experto")
+	judicial_id = fields.Many2one('rol.judicial', 'Judicial')
 
 	@api.model
-	def from_dict(self, obj):
+	def from_dict(self, obj, fecha_informe):
 		rec = False
 		if isinstance(obj, dict):
 			values = {
+				'fecha_informe': fecha_informe,
 				'rol_id': str(from_int(obj.get(u"id"))),
 				'nombre': from_str(obj.get(u"nombre")),
 				'sexo': from_str(obj.get(u"sexo")),
@@ -840,10 +839,11 @@ class RolPersona(models.Model):
 			rec.personas_relacionada_ids = from_list(self.env['rol.persona.personas'].from_dict, obj.get(u"personas_relacionadas"))
 			rec.marca_ids = from_list(self.env['rol.persona.marca'].from_dict, obj.get(u"marcas"))
 			rec.dominios_nic_ids = from_list(self.env['rol.persona.dominiosnic'].from_dict, obj.get(u"dominios_nic"))
-			rec.bancarizacion_id = self.env['rol.persona.bancarizacion'].from_dict(obj.get(u"bancarizacion"))
+			rec.bancarizacion_id = self.env['rol.persona.bancarizacion'].from_dict(obj.get(u"bancarizacion"), fecha_informe)
 			rec.perfil_id = self.env['rol.persona.perfil'].from_dict(obj.get(u"perfil"))
-			rec.actividad_id = self.env['rol.persona.actividad'].from_dict(obj.get(u"actividad"))
+			rec.actividad_id = self.env['rol.persona.actividad'].from_dict(obj.get(u"actividad"), fecha_informe)
 			rec.experto_id = self.env['rol.experto'].from_dict(obj.get(u"experto"))
+			rec.judicial_id = self.env['rol.judicial'].from_dict(obj.get(u"judicial"))
 			rec = rec.id
 		return rec
 
@@ -863,9 +863,7 @@ class Rol(models.Model):
 	def from_dict(self, obj):
 		rec = False
 		if isinstance(obj, dict):
-			values = {
-				'informe_id': self.env['rol.informe'].from_dict(obj.get(u"informe")),
-				'persona_id': self.env['rol.persona'].from_dict(obj.get(u"persona")),
-			}
-			rec = self.env['rol'].create(values)
+			rec = self.env['rol'].create({})
+			rec.informe_id = self.env['rol.informe'].from_dict(obj.get(u"informe"))
+			rec.persona_id = self.env['rol.persona'].from_dict(obj.get(u"persona"), rec.fecha)
 		return rec
