@@ -13,8 +13,13 @@ class ExtendsResPartnerRol(models.Model):
 	_name = 'res.partner'
 	_inherit = 'res.partner'
 
-	rol_ids = fields.One2many('rol', 'partner_id', "ROL")
+	rol_ids = fields.One2many('rol', 'partner_id', "ROL - Informes")
 	rol_id = fields.Many2one('rol', "ROL - Consulta actual")
+	domicilio_ids = fields.One2many(related='rol_id.persona_id.domicilio_ids')
+	telefono_ids = fields.One2many(related='rol_id.persona_id.telefono_ids')
+	personas_igual_domicilio_ids = fields.One2many(related='rol_id.persona_id.personas_igual_domicilio_ids')
+	personas_relacionada_ids = fields.One2many(related='rol_id.persona_id.personas_relacionada_ids')
+	vecino_ids = fields.One2many(related='rol_id.persona_id.vecino_ids')
 	# buro_rol_informe_ids = fields.One2many('financiera.buro.rol.informe', 'partner_id', 'Informes')
 	rol_modelo = fields.Char('Rol modelo')
 	rol_name = fields.Char('Nombre', related='rol_id.persona_id.nombre')
@@ -120,6 +125,7 @@ class ExtendsResPartnerRol(models.Model):
 			self.button_asignar_domicilio_rol()
 		return True
 
+
 	@api.one
 	def button_consultar_informe_rol(self):
 		forzar = self.company_id.rol_configuracion_id.forzar_solicitud
@@ -145,7 +151,7 @@ class ExtendsResPartnerRol(models.Model):
 					'password': rol_configuracion_id.password,
 					'formato': 'json',
 					'version': 2,
-					'procesar_forzado': 1,
+					# 'procesar_forzado': 1,
 				}
 				if rol_configuracion_id.modelo_experto:
 					params['procesar_experto'] = rol_configuracion_id.modelo_experto

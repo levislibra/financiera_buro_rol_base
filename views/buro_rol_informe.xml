@@ -354,6 +354,7 @@
           <page string='Riesgo Online' groups="financiera_buro_rol_base.manager">
 						<group string="Informes" col="1">
 							<field name="rol_cda_aprobado_id" readonly="1"/>
+							<field name="rol_id" readonly="1"/>
 							<field name="rol_ids">
 								<tree create="false" edit="false" delete="false" limit="5">
 									<field name="fecha"/>
@@ -521,6 +522,147 @@
             </group>
           </group>
         </xpath>
+      </field>
+		</record>
+		
+		<!-- Extends res.partner Cobranza y Seguimiento
+				Vista en Menu Deudores -->
+
+		<record id="cobranza_mora_cliente_form"  model="ir.ui.view">
+      <field name="name">cobranza.mora.form.extends</field>
+			<field name="model">res.partner</field>
+			<field name="inherit_id" ref="financiera_cobranza_mora.cobranza_mora_cliente_form"/>
+      <field name="arch" type="xml">
+				<xpath expr="//field[@name='cobranza_disponible']" position="after">
+					<field name="rol_name" invisible="1"/>
+					<!-- <button name="button_actualizar_rol_actual" string="Actualizar datos ROL" 
+						type="object" attrs="{'invisible': [('rol_name', '!=', False)]}"/> -->
+					<field name="rol_id" invisible="1"/>
+				</xpath>
+				<xpath expr="//page[1]" position="after">
+					<page name="domicilio" string="Domicilios (ROL)" 
+						attrs="{'invisible': [('rol_name', '=', False)]}">
+						<field name="domicilio_ids" readonly="1">
+							<tree limit="4">
+								<field name="tipo"/>
+								<field name="domicilio"/>
+							</tree>
+						</field>
+					</page>
+					<page name="telefono" string="Telefono (ROL)"
+						attrs="{'invisible': [('rol_name', '=', False)]}">
+						<field name="telefono_ids" readonly="1">
+							<tree limit="4">
+								<field name="titular"/>
+								<field name="domicilio"/>
+								<field name="numero"/>
+							</tree>
+						</field>
+					</page>
+					<page name="personas_igual_domicilio" string="Personas igual domicilio (ROL)"
+						attrs="{'invisible': [('rol_name', '=', False)]}">
+						<field name="personas_igual_domicilio_ids" readonly="1">
+								<tree limit="4">
+									<field name="nombre"/>
+									<field name="rol_id" string="CUIT"/>
+									<field name="sexo"/>
+									<field name="domicilio"/>
+									<field name="relacion"/>
+								</tree>
+							</field>
+					</page>
+					<page name="personas_relacionada" string="Personas relacionadas (ROL)"
+						attrs="{'invisible': [('rol_name', '=', False)]}">
+						<field name="personas_relacionada_ids" readonly="1">
+							<tree limit="4">
+								<field name="nombre"/>
+								<field name="rol_id" string="CUIT"/>
+								<field name="sexo"/>
+								<field name="domicilio"/>
+								<field name="relacion"/>
+							</tree>
+						</field>
+					</page>
+					<page name="vecinos" string="Vecinos (ROL)"
+						attrs="{'invisible': [('rol_name', '=', False)]}">
+						<field name="vecino_ids" readonly="1">
+							<tree limit="4">
+								<field name="titular"/>
+								<field name="domicilio"/>
+								<field name="numero"/>
+							</tree>
+						</field>
+					</page>
+				</xpath>
+      </field>
+		</record>
+		
+		<!-- Extends res.partner Cobranza y Seguimiento SESION -->
+
+		<record id="cobranza_mora_cliente_sesion_form"  model="ir.ui.view">
+      <field name="name">cobranza.mora.form.extends</field>
+			<field name="model">res.partner</field>
+			<field name="inherit_id" ref="financiera_cobranza_mora.cobranza_mora_cliente_sesion_form"/>
+      <field name="arch" type="xml">
+				<xpath expr="//field[@name='email']" position="after">
+					<field name="rol_name" invisible="1"/>
+					<field name="rol_id" invisible="1"/>
+				</xpath>
+				<xpath expr="//page[1]" position="after">
+					<page name="domicilio" string="Domicilios (ROL)" 
+						attrs="{'invisible': [('rol_name', '=', False)]}">
+						<field name="domicilio_ids" readonly="1">
+							<tree limit="4">
+								<field name="tipo"/>
+								<field name="domicilio"/>
+							</tree>
+						</field>
+					</page>
+					<page name="telefono" string="Telefono (ROL)"
+						attrs="{'invisible': [('rol_name', '=', False)]}">
+						<field name="telefono_ids" readonly="1">
+							<tree limit="4">
+								<field name="titular"/>
+								<field name="domicilio"/>
+								<field name="numero"/>
+							</tree>
+						</field>
+					</page>
+					<page name="personas_igual_domicilio" string="Personas igual domicilio (ROL)"
+						attrs="{'invisible': [('rol_name', '=', False)]}">
+						<field name="personas_igual_domicilio_ids" readonly="1">
+								<tree limit="4">
+									<field name="nombre"/>
+									<field name="rol_id" string="CUIT"/>
+									<field name="sexo"/>
+									<field name="domicilio"/>
+									<field name="relacion"/>
+								</tree>
+							</field>
+					</page>
+					<page name="personas_relacionada" string="Personas relacionadas (ROL)"
+						attrs="{'invisible': [('rol_name', '=', False)]}">
+						<field name="personas_relacionada_ids" readonly="1">
+							<tree limit="4">
+								<field name="nombre"/>
+								<field name="rol_id" string="CUIT"/>
+								<field name="sexo"/>
+								<field name="domicilio"/>
+								<field name="relacion"/>
+							</tree>
+						</field>
+					</page>
+					<page name="vecinos" string="Vecinos (ROL)"
+						attrs="{'invisible': [('rol_name', '=', False)]}">
+						<field name="vecino_ids" readonly="1">
+							<tree limit="4">
+								<field name="titular"/>
+								<field name="domicilio"/>
+								<field name="numero"/>
+							</tree>
+						</field>
+					</page>
+				</xpath>
       </field>
     </record>
 
