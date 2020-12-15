@@ -867,7 +867,7 @@ class Rol(models.Model):
 	persona_id = fields.Many2one('rol.persona', 'Persona')
 	fecha = fields.Datetime('Fecha', related='informe_id.fecha_hora')
 	state = fields.Char('Estado')
-	company_id = fields.Many2one('res.company', 'Empresa', default=lambda self: self.env['res.company']._company_default_get('rol'))
+	company_id = fields.Many2one('res.company', 'Empresa', related='partner_id.company_id', readonly=True)
 	
 			
 	@api.model
