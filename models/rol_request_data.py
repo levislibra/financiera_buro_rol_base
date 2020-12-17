@@ -871,10 +871,10 @@ class Rol(models.Model):
 	
 			
 	@api.model
-	def from_dict(self, obj):
+	def from_dict(self, obj, partner_id):
 		rec = False
 		if isinstance(obj, dict):
-			rec = self.env['rol'].create({})
+			rec = self.env['rol'].create({'partner_id': partner_id})
 			rec.informe_id = self.env['rol.informe'].from_dict(obj.get(u"informe"))
 			rec.persona_id = self.env['rol.persona'].from_dict(obj.get(u"persona"))
 		return rec

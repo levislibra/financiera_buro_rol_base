@@ -103,8 +103,8 @@ class ExtendsResPartnerRol(models.Model):
 					url = url + cuit
 					r = requests.get(url, params=params)
 					data = r.json()
-					new_rol_id = self.env['rol'].from_dict(data)
-					new_rol_id.partner_id = self.id
+					new_rol_id = self.env['rol'].from_dict(data, self.id)
+					# new_rol_id.partner_id = self.id
 					if len(new_rol_id.persona_id) > 0:
 						new_rol_id.state = 'OK'
 						self.rol_ids = [new_rol_id.id]
@@ -162,8 +162,8 @@ class ExtendsResPartnerRol(models.Model):
 					r = requests.get(url, params=params)
 					if r.status_code == 200:
 						data = r.json()
-						new_rol_id = self.env['rol'].from_dict(data)
-						new_rol_id.partner_id = self.id
+						new_rol_id = self.env['rol'].from_dict(data, self.id)
+						# new_rol_id.partner_id = self.id
 						if len(new_rol_id.persona_id) > 0:
 							new_rol_id.state = 'OK'
 							self.rol_ids = [new_rol_id.id]
