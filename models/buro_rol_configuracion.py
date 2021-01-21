@@ -24,6 +24,8 @@ class FinancieraBuroRolConfiguracion(models.Model):
 	evaluar_cda_enviar_a_revision = fields.Boolean('Evaluar CDAs al enviar a revision')
 	asignar_cda_otorgamiento = fields.Boolean('Asignar otorgamientos de CDAs')
 	modelo_experto = fields.Char('Modelo experto a evaluar')
+	porcentaje_respuestas_correctas = fields.Integer('Porcentaje respuestas correctas para validar',
+		help="Valor de 0 a 100. Por lo general son 5 preguntas. Por ejemplo: 80 es para 4 respuestas correctas de 5.")
 	cda_ids = fields.One2many('financiera.buro.rol.cda', 'config_id', 'Modelos CDA')
 	company_id = fields.Many2one('res.company', 'Empresa', required=False, default=lambda self: self.env['res.company']._company_default_get('financiera.buro.rol.configuracion'))
 	

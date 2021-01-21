@@ -46,6 +46,8 @@ class ExtendsResPartnerRol(models.Model):
 	rol_fecha_informe = fields.Datetime('Fecha del informe', related='rol_id.fecha')
 	rol_cda_aprobado_id = fields.Many2one('financiera.buro.rol.cda', 'CDA aprobado')
 	rol_cda_reporte_ids = fields.One2many('financiera.buro.rol.cda.reporte', 'partner_id', 'CDA reporte')
+	# Validador de identidad segun preguntas
+	rol_validador_identidad_id = fields.Many2one('rol.validador.identidad', 'Preguntas')
 
 	def buscar_persona(self):
 		ret = None
@@ -276,6 +278,55 @@ class ExtendsResPartnerRol(models.Model):
 							self.partner_tipo_id = False
 							self.capacidad_pago_mensual = 0
 							self.rol_cda_aprobado_id = None
+	
+	# Funcion documentada en la API!
+	@api.one
+	def obtener_preguntas_rol(self):
+		ret = False
+		if len(self.rol_validador_identidad_id) > 0:
+			self.rol_validador_identidad_id.unlink()
+		rol_configuracion_id = self.company_id.rol_configuracion_id
+		if rol_configuracion_id:
+			params = {
+				'username': rol_configuracion_id.usuario,
+				'password': rol_configuracion_id.password,
+				'version': 2,
+			}
+			if len(self.rol_id) > 0:
+				cuit = self.rol_cuit
+				informe = self.rol_id.informe_id.rol_id
+				url = 'https://informe.riesgoonline.com/api/validador/%s/%s'%(str(cuit),str(informe))
+				r = requests.get(url, params=params)
+				data = r.json()
+				if 'error' in data.keys():
+					ret = {
+						'error': data['error']
+					}
+					raise ValidationError(ret['error'])
+				else:
+					new_rol_validacion_identidad_id = self.env['rol.validador.identidad'].from_dict(data, self.id)
+					self.rol_validador_identidad_id = new_rol_validacion_identidad_id.id
+					ret = data['resultado']
+			else:
+				ret = {
+					'error': "Informe no encontrado."
+				}
+				raise ValidationError(ret['error'])
+			return ret
+
+	# Funcion documentada en la API!
+	# porcentaje_correctas es un valor de 0 a 100.
+	@api.one
+	def set_respuestas_correctas(self, porcentaje_correctas):
+		ret = False
+		rol_configuracion_id = self.company_id.rol_configuracion_id
+		self.confirm()
+		if porcentaje_correctas >= rol_configuracion_id.porcentaje_respuestas_correctas:
+			self.state = 'validated'
+			ret = True
+		else:
+			raise ValidationError("No supero el minimo requerido de respuestas correctas.")
+		return ret
 
 class ExtendsFinancieraPrestamo(models.Model):
 	_name = 'financiera.prestamo'

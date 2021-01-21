@@ -862,6 +862,7 @@ class Rol(models.Model):
 	_name = 'rol'
 
 	_order = "id desc"
+	name = fields.Char('Nombre para mostrar')
 	partner_id = fields.Many2one('res.partner', 'Cliente')
 	informe_id = fields.Many2one('rol.informe', 'Informe')
 	persona_id = fields.Many2one('rol.persona', 'Persona')
@@ -869,6 +870,13 @@ class Rol(models.Model):
 	state = fields.Char('Estado')
 	company_id = fields.Many2one('res.company', 'Empresa', related='partner_id.company_id', readonly=True)
 	
+	@api.model
+	def create(self, values):
+		rec = super(Rol, self).create(values)
+		rec.update({
+			'name': 'ROL/' + str(rec.id).zfill(8),
+		})
+		return rec
 			
 	@api.model
 	def from_dict(self, obj, partner_id):

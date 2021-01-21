@@ -41,6 +41,7 @@
 												<field name="evaluar_cda_enviar_a_revision"/>
 												<field name="asignar_cda_otorgamiento"/>
 												<field name="modelo_experto"/>
+												<field name="porcentaje_respuestas_correctas"/>
                       </group>
 									</group>
 									<notebook>

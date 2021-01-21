@@ -41,6 +41,7 @@
 							<group>
 								<!-- <field name="company_id" groups="base.group_erp_manager"/> -->
 								<field name="nombre"/>
+								<field name="rol_id" string="CUIT"/>
 								<field name="sexo"/>
 								<field name="edad"/>
 								<field name="tipo"/>
@@ -355,36 +356,44 @@
 						<group string="Informes" col="1">
 							<field name="rol_cda_aprobado_id" readonly="1"/>
 							<field name="rol_id" readonly="1"/>
-							<field name="rol_ids">
-								<tree create="false" edit="false" delete="false" limit="5">
-									<field name="fecha"/>
-									<field name="partner_id"/>
-									<field name="informe_id" string="Datos"/>
-									<field name="persona_id" string="Informe"/>
-									<field name="state"/>
-								</tree>
-							</field>
-							<field name="rol_cda_reporte_ids">
-								<tree create="false" edit="false" delete="false" limit="5">
-									<field name="create_date" string="Fecha"/>
-									<field name="cda_id"/>
-									<field name="detalle_ids" string="Rechazos"/>
-									<field name="resultado"/>
-								</tree>
-								<form>
-									<sheet>
-										<field name="create_date" string="Fecha"/>
-										<field name="cda_id"/>
-										<field name="resultado"/>
-										<field name="detalle_ids" string="Rechazos">
-											<tree create='false' edit='false' delete='false'>
-												<field name='control'/>
-												<field name='name' string='Detalle'/>
-											</tree>
-										</field>
-									</sheet>
-								</form>
-							</field>
+							<group col="2">
+								<group col="1">
+									<field name="rol_ids">
+										<tree create="false" edit="false" delete="false" limit="5">
+											<field name="fecha"/>
+											<field name="partner_id"/>
+											<field name="informe_id" string="Datos"/>
+											<field name="persona_id" string="Informe"/>
+											<field name="state"/>
+										</tree>
+									</field>
+								</group>
+								<group col="1">
+									<field name="rol_cda_reporte_ids">
+										<tree create="false" edit="false" delete="false" limit="5">
+											<field name="create_date" string="Fecha"/>
+											<field name="cda_id"/>
+											<field name="detalle_ids" string="Rechazos"/>
+											<field name="resultado"/>
+										</tree>
+										<form>
+											<sheet>
+												<field name="create_date" string="Fecha"/>
+												<field name="cda_id"/>
+												<field name="resultado"/>
+												<field name="detalle_ids" string="Rechazos">
+													<tree create='false' edit='false' delete='false'>
+														<field name='control'/>
+														<field name='name' string='Detalle'/>
+													</tree>
+												</field>
+											</sheet>
+										</form>
+									</field>
+								</group>
+							</group>
+							<button name="obtener_preguntas_rol" string="Obtener preguntas para VI" type="object" confirm="Desea confirmar?"/>
+							<field name="rol_validador_identidad_id" readonly="1"/>
 						</group>
           </page>
         </xpath>
@@ -664,7 +673,54 @@
 					</page>
 				</xpath>
       </field>
-    </record>
+		</record>
+		
+	<!-- vista de preguntas para VI -->
+
+		<record id="rol_preguntas_vi_form" model="ir.ui.view">
+			<field name="name">rol.validador.identidad.form</field>
+			<field name="model">rol.validador.identidad</field>
+			<field name="arch" type="xml">
+				<form string="Preguntas para validador de identidad" create="false" delete="false" edit="false">
+					<sheet>
+						<script>
+							$(document).ready(function(){
+								$('.oe_form_sheet_width').css({'background-color': 'gainsboro'});
+							});
+						</script>
+						<group>
+							<field name="partner_id"/>
+							<field name="nombre"/>
+							<field name="cuit"/>
+						</group>
+						<notebook>
+							<page name="preguntas" string="Preguntas">
+								<field name="pregunta_ids" limit="10">
+									<tree>
+										<field name="pregunta"/>
+										<field name="respuesta_ids"/>
+									</tree>
+									<form>
+										<sheet>
+											<group>
+												<field name="pregunta"/>
+												<field name="respuesta_ids">
+													<tree>
+														<field name="respuesta"/>
+														<field name="verdadera"/>
+													</tree>
+												</field>
+											</group>
+										</sheet>
+									</form>
+								</field>
+							</page>
+						</notebook>
+					</sheet>
+				</form>
+			</field>
+	</record>
+
 
   </data>
 </openerp>

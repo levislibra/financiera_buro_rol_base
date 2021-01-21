@@ -106,3 +106,11 @@ user_financiera_buro_rol_cda_reporte,financiera.buro.rol.cda.reporte,model_finan
 manager_financiera_buro_rol_cda_reporte_detalle,financiera.buro.rol.cda.reporte.detalle,model_financiera_buro_rol_cda_reporte_detalle,financiera_buro_rol_base.manager,1,1,1,1
 user_financiera_buro_rol_cda_reporte_detalle,financiera.buro.rol.cda.reporte.detalle,model_financiera_buro_rol_cda_reporte_detalle,financiera_buro_rol_base.user,1,1,0,0
 
+manager_financiera_rol_respuesta,rol.respuesta,model_rol_respuesta,financiera_buro_rol_base.manager,1,1,1,1
+user_financiera_rol_respuesta,rol.respuesta,model_rol_respuesta,financiera_buro_rol_base.user,1,1,1,1
+
+manager_financiera_rol_pregunta,rol.pregunta,model_rol_pregunta,financiera_buro_rol_base.manager,1,1,1,1
+user_financiera_rol_pregunta,rol.pregunta,model_rol_pregunta,financiera_buro_rol_base.user,1,1,1,1
+
+manager_financiera_rol_validador_identidad,rol.validador.identidad,model_rol_validador_identidad,financiera_buro_rol_base.manager,1,1,1,1
+user_financiera_rol_validador_identidad,rol.validador.identidad,model_rol_validador_identidad,financiera_buro_rol_base.user,1,1,1,1
