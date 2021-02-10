@@ -502,6 +502,12 @@ class RolPersonaBancarizacion(models.Model):
 		len_entidades_historico = len(self.entidades_historico_ids)
 		while periodo <= 12 and i < len_entidades_historico:
 			entidad_id = self.entidades_historico_ids[i]
+			if i == 0:
+				# Comprobamos el deplazamiento si es necesario
+				if entidad_id.periodo_meses > 4:
+					# si hay menos de 4 meses del ultimo informe en bcra lo consideramos ultimo mes
+					# si hay mas asignamos el desplazamiento correspondiente
+					periodo = entidad_id.periodo_meses
 			if periodo == 1:
 				ret['ultimo_mes'][entidad_id.situacion-1] += 1
 				ret['tres_meses'][entidad_id.situacion-1] += 1
@@ -520,6 +526,7 @@ class RolPersonaBancarizacion(models.Model):
 				if entidad_id.periodo != self.entidades_historico_ids[i+1].periodo:
 					periodo += 1
 			i += 1
+		print("ret: ", ret)
 		return ret
 
 			
