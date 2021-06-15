@@ -409,7 +409,7 @@
       <field name="inherit_id" ref="financiera_prestamos.partner_form_inherited"/>
       <field name="arch" type="xml">
         <xpath expr="//group[@name='risk']" position="inside">
-          <group string="Riesgo Online" col="1" style="background-color: #E6E6E6">
+          <group name='rol' string="Riesgo Online" col="1" style="background-color: #E6E6E6">
             <group col="1" attrs="{'invisible': [('rol_cuit', '=', False)]}">
               <group col="2">
                 <field name="rol_fecha_informe" readonly="1"/>
@@ -459,7 +459,7 @@
               </group>
             </group>
             <separate col="1"/>
-            <group col="2">
+            <group name='rol_button_action' col="2">
               <button name="button_solicitar_informe_rol" string="Solicitar informe" type="object" confirm="Desea solicitar el informe?"/>
               <button name="button_consultar_informe_rol" string="Consultar informe" type="object" confirm="Desea consultar el informe?"/>
             </group>
