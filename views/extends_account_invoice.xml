@@ -1,0 +1,18 @@
+<openerp>
+  <data>
+
+		<!-- Para reporte de iibb segun provincia -->
+
+		<record model="ir.ui.view" id="extends_financiera_partner_invoice_state_tree">
+      <field name="name">account.invoice</field>
+      <field name="model">account.invoice</field>
+      <field name="inherit_id" ref="financiera_prestamos.financiera_partner_invoice_state_tree"/>
+      <field name="arch" type="xml">
+        <xpath expr="//field[@name='state_id']" position="after">
+          <field name="rol_state_id"/>
+        </xpath>
+      </field>
+    </record>
+
+  </data>
+</openerp>
