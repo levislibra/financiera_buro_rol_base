@@ -361,8 +361,8 @@
 									<field name="rol_ids">
 										<tree create="false" edit="false" delete="false" limit="5">
 											<field name="fecha"/>
-											<field name="partner_id"/>
-											<field name="informe_id" string="Datos"/>
+											<field name="partner_id" invisible="1"/>
+											<field name="informe_id" string="Datos" invisible="1"/>
 											<field name="persona_id" string="Informe"/>
 											<field name="state"/>
 										</tree>
@@ -462,6 +462,7 @@
             <group name='rol_button_action' col="2">
               <button name="button_solicitar_informe_rol" string="Solicitar informe" type="object" confirm="Desea solicitar el informe?"/>
               <button name="button_consultar_informe_rol" string="Consultar informe" type="object" confirm="Desea consultar el informe?"/>
+							<button name="button_descargar_informe_rol" string="Descargar informe" type="object"/>
             </group>
           </group>
         </xpath>

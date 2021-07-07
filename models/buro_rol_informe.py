@@ -20,7 +20,6 @@ class ExtendsResPartnerRol(models.Model):
 	personas_igual_domicilio_ids = fields.One2many(related='rol_id.persona_id.personas_igual_domicilio_ids')
 	personas_relacionada_ids = fields.One2many(related='rol_id.persona_id.personas_relacionada_ids')
 	vecino_ids = fields.One2many(related='rol_id.persona_id.vecino_ids')
-	# buro_rol_informe_ids = fields.One2many('financiera.buro.rol.informe', 'partner_id', 'Informes')
 	rol_modelo = fields.Char('Rol modelo')
 	rol_name = fields.Char('Nombre', related='rol_id.persona_id.nombre')
 	rol_cuit = fields.Char('Identificacion', related='rol_id.persona_id.rol_id')
@@ -29,20 +28,14 @@ class ExtendsResPartnerRol(models.Model):
 
 	rol_experto_nombre = fields.Char('Modelo evaluado', related='rol_id.persona_id.experto_id.nombre')
 	rol_experto_codigo = fields.Char('Codigo', related='rol_id.persona_id.experto_id.codigo')
-	# rol_experto_detalles_estado = fields.Char('Estado')
-	# rol_experto_detalles_texto = fields.Text('Detalle')
 	rol_experto_ingreso = fields.Char('Ingresos', related='rol_id.persona_id.experto_id.ingreso')
 	rol_experto_resultado = fields.Char('Resultado', related='rol_id.persona_id.experto_id.resultado',
 		help='S: Superado\nN: Rechazado\nI: Incompleto\nV: Verificar.')
 	rol_experto_compromiso_mensual = fields.Char('Compromiso mensual', related='rol_id.persona_id.experto_id.compromiso_mensual')
-	# rol_experto_monto_mensual_evaluado = fields.Char('CP evaluada (obsoleto)')
 	rol_capacidad_pago_mensual = fields.Float('ROL - CPM', digits=(16,2))
 	rol_partner_tipo_id = fields.Many2one('financiera.partner.tipo', 'ROL - Tipo de cliente')
 	# Info perfil
 	rol_domicilio = fields.Char('Domicilio', compute='_compute_rol_domicilio')
-	# rol_domicilio_ids = fields.One2many('financiera.buro.rol.informe.domicilio', 'partner_id', 'Domicilios')
-	# rol_telefono_ids = fields.One2many('financiera.buro.rol.informe.telefono', 'partner_id', 'Telefonos')
-	# rol_actividad_ids = fields.One2many('financiera.buro.rol.informe.actividad', 'partner_id', 'Actividad comercial')
 	rol_fecha_informe = fields.Datetime('Fecha del informe', related='rol_id.fecha')
 	rol_cda_aprobado_id = fields.Many2one('financiera.buro.rol.cda', 'CDA aprobado')
 	rol_cda_reporte_ids = fields.One2many('financiera.buro.rol.cda.reporte', 'partner_id', 'CDA reporte')
@@ -191,6 +184,33 @@ class ExtendsResPartnerRol(models.Model):
 		forzar = self.company_id.rol_configuracion_id.forzar_solicitud
 		self.solicitar_informe_rol(forzar)
 		return {'type': 'ir.actions.do_nothing'}
+
+	@api.multi
+	def button_descargar_informe_rol(self):
+		rol_configuracion_id = self.company_id.rol_configuracion_id
+		if rol_configuracion_id:
+			if len(self.rol_id) > 0 and len(self.rol_id.persona_id) > 0 and len(self.rol_id.informe_id) > 0:
+				cuit = self.rol_id.persona_id.rol_id
+				informe = self.rol_id.informe_id.rol_id
+				data = None
+				if cuit and informe:
+					url = 'https://informe.riesgoonline.com/api/informes/descargar/%s/%s'%(str(cuit),str(informe))
+					url = url + '?username=%s&password=%s'%(rol_configuracion_id.usuario, rol_configuracion_id.password)
+					opciones = '&opciones[]=contenidos&opciones[]=modulos&opciones[]=adjuntos&opciones[]=graficos&opciones[]=consultas'
+					url = url + opciones
+				else:
+					raise UserError("CUIT o Nro de informe no encontrado.")
+				return {
+					'name'     : 'ROL informe',
+					'res_model': 'ir.actions.act_url',
+					'type'     : 'ir.actions.act_url',
+					'target'   : 'new',
+					'url'      : url
+				}
+			else:
+				raise UserError("El informe no existe.")
+		else:
+			raise UserError("ROL no esta configurado.")
 
 	@api.one
 	def _compute_rol_domicilio(self):
