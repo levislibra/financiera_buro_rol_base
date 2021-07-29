@@ -538,10 +538,10 @@
 		<!-- Extends res.partner Cobranza y Seguimiento
 				Vista en Menu Deudores -->
 
-		<record id="cobranza_mora_cliente_form"  model="ir.ui.view">
+		<record id="cobranza_mora_cliente_sesion_form"  model="ir.ui.view">
       <field name="name">cobranza.mora.form.extends</field>
 			<field name="model">res.partner</field>
-			<field name="inherit_id" ref="financiera_cobranza_mora.cobranza_mora_cliente_form"/>
+			<field name="inherit_id" ref="financiera_cobranza_mora.cobranza_mora_cliente_sesion_form"/>
       <field name="arch" type="xml">
 				<xpath expr="//field[@name='cobranza_disponible']" position="after">
 					<field name="rol_name" invisible="1"/>
