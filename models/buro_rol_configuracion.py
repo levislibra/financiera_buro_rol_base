@@ -23,7 +23,6 @@ class FinancieraBuroRolConfiguracion(models.Model):
 	forzar_solicitud = fields.Boolean('Forzar solicitud/consulta manual')
 	asignar_identidad_rol = fields.Boolean('Asignar identidad ROL al solicitar informe')
 	asignar_domicilio_rol = fields.Boolean('Asignar domicilio ROL al solicitar informe')
-	evaluar_cda_enviar_a_revision = fields.Boolean('Evaluar CDAs al enviar a revision')
 	asignar_cda_otorgamiento = fields.Boolean('Asignar otorgamientos de CDAs')
 	modelo_experto = fields.Char('Modelo experto a evaluar')
 	porcentaje_respuestas_correctas = fields.Integer('Porcentaje respuestas correctas para validar',

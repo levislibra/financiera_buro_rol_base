@@ -169,11 +169,14 @@ class ExtendsResPartnerRol(models.Model):
 						list_values = []
 						self.process_dict("", "", data, list_values, 0)
 						nuevo_informe_id.write({'variable_ids': list_values})
-						self.button_asignar_identidad_rol()
-						self.button_asignar_domicilio_rol()
-						rol_configuracion_id.id_informe += 1		
-						# if rol_configuracion_id.ejecutar_cda_al_solicitar_informe:
-						# 	nuevo_informe_id.ejecutar_cdas()
+						if rol_configuracion_id.asignar_identidad_rol:
+							self.button_asignar_identidad_rol()
+						if rol_configuracion_id.asignar_domicilio_rol:
+							self.button_asignar_domicilio_rol()
+						if rol_configuracion_id.asignar_cda_otorgamiento:
+							self.check_cdas()
+							self.button_asignar_cpm_y_tipo_rol()
+						rol_configuracion_id.id_informe += 1
 				else:
 					ValidationError("Falta DNI, CUIT o CUIL.")
 		else:
@@ -217,18 +220,20 @@ class ExtendsResPartnerRol(models.Model):
 					r = requests.get(url, params=params)
 					if r.status_code == 200:
 						data = r.json()
-						new_rol_id = self.env['rol'].from_dict(data, self.id)
-						# new_rol_id.partner_id = self.id
-						if len(new_rol_id.persona_id) > 0:
-							new_rol_id.state = 'OK'
-							self.rol_ids = [new_rol_id.id]
-							self.rol_id = new_rol_id.id
-						elif 'error' in data:
-							new_rol_id.state = "Error: " + data['mensaje']
-							self.rol_id = None
-						else:
-							new_rol_id.state = 'Error al solicitar informe'
-							self.rol_id = None
+						nuevo_informe_id = self.env['financiera.rol.informe'].create({})
+						self.rol_informe_ids = [nuevo_informe_id.id]
+						self.rol_variable_ids = [(6, 0, [])]
+						list_values = []
+						self.process_dict("", "", data, list_values, 0)
+						nuevo_informe_id.write({'variable_ids': list_values})
+						if rol_configuracion_id.asignar_identidad_rol:
+							self.button_asignar_identidad_rol()
+						if rol_configuracion_id.asignar_domicilio_rol:
+							self.button_asignar_domicilio_rol()
+						if rol_configuracion_id.asignar_cda_otorgamiento:
+							self.check_cdas()
+							self.button_asignar_cpm_y_tipo_rol()
+						rol_configuracion_id.id_informe += 1
 				else:
 					ValidationError("Falta DNI, CUIT o CUIL.")
 		else:
@@ -341,48 +346,6 @@ class ExtendsResPartnerRol(models.Model):
 	def check_cdas(self):
 		if self.rol_informe_ids and len(self.rol_informe_ids) > 0:
 			self.rol_informe_ids[0].ejecutar_cdas()
-		# rol_configuracion_id = self.company_id.rol_configuracion_id
-		# if len(self.rol_id) > 0:
-		# 	persona_id = self.rol_id.persona_id
-		# 	sexo = persona_id.sexo
-		# 	edad = persona_id.edad
-		# 	# Generales
-		# 	fallecido = persona_id.fallecido
-		# 	perfil_letra = persona_id.perfil_id.letra
-		# 	# Actividad
-		# 	empleado_vigencia = persona_id.actividad_id.actividad_empleado_vigencia
-		# 	monotributista_vigencia = persona_id.actividad_id.actividad_monotributista_vigencia
-		# 	autonomo_vigencia = persona_id.actividad_id.actividad_autonomo_vigencia
-		# 	empleado_antiguedad = persona_id.actividad_id.actividad_empleado_antiguedad
-		# 	monotributista_antiguedad = persona_id.actividad_id.actividad_monotributista_antiguedad
-		# 	autonomo_antiguedad = persona_id.actividad_id.actividad_autonomo_antiguedad
-		# 	empleado_continuidad = persona_id.actividad_id.actividad_empleado_continuidad
-		# 	monotributista_continuidad = persona_id.actividad_id.actividad_monotributista_continuidad
-		# 	autonomo_continuidad = persona_id.actividad_id.actividad_autonomo_continuidad
-		# 	jubilado_pensionado = persona_id.jubilado
-		# 	# Bancarizacion
-		# 	resumen_situaciones_bancarias = persona_id.bancarizacion_id.resumen_situaciones_bancarias()
-		# 	cda_ids = self.company_id.rol_configuracion_id.cda_ids
-		# 	for cda_id in cda_ids:
-		# 		if cda_id.activo:
-		# 			cda_evaluacion = cda_id.evaluar_cda(self.id, fallecido, perfil_letra, sexo, edad, empleado_vigencia, monotributista_vigencia, autonomo_vigencia,
-		# 				empleado_antiguedad, monotributista_antiguedad, autonomo_antiguedad, 
-		# 				empleado_continuidad, monotributista_continuidad, autonomo_continuidad, jubilado_pensionado,
-		# 				resumen_situaciones_bancarias)
-		# 			if rol_configuracion_id.asignar_cda_otorgamiento:
-		# 				if cda_evaluacion == 'aprobado':
-		# 					self.rol_partner_tipo_id = cda_id.partner_tipo_id.id
-		# 					self.rol_capacidad_pago_mensual = cda_id.capacidad_pago_mensual
-		# 					self.partner_tipo_id = cda_id.partner_tipo_id.id
-		# 					self.capacidad_pago_mensual = cda_id.capacidad_pago_mensual
-		# 					self.rol_cda_aprobado_id = cda_id.id
-		# 					break
-		# 				else:
-		# 					self.rol_partner_tipo_id = False
-		# 					self.rol_capacidad_pago_mensual = 0
-		# 					self.partner_tipo_id = False
-		# 					self.capacidad_pago_mensual = 0
-		# 					self.rol_cda_aprobado_id = None
 	
 	# Funcion documentada en la API!
 	@api.one
@@ -433,18 +396,3 @@ class ExtendsResPartnerRol(models.Model):
 			raise ValidationError("No supero el minimo requerido de respuestas correctas.")
 		return ret
 
-class ExtendsFinancieraPrestamo(models.Model):
-	_name = 'financiera.prestamo'
-	_inherit = 'financiera.prestamo'
-
-	@api.one
-	def enviar_a_revision(self):
-		if len(self.company_id.rol_configuracion_id) > 0:
-			rol_configuracion_id = self.company_id.rol_configuracion_id
-			if rol_configuracion_id.solicitar_informe_enviar_a_revision:
-				origen_ids = [g.id for g in rol_configuracion_id.origen_ids]
-				if self.origen_id.id in origen_ids:
-					self.partner_id.solicitar_informe_rol()
-			if rol_configuracion_id.evaluar_cda_enviar_a_revision:
-				self.partner_id.check_cdas()
-		super(ExtendsFinancieraPrestamo, self).enviar_a_revision()
