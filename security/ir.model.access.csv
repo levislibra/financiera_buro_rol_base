@@ -114,3 +114,22 @@ user_financiera_rol_pregunta,rol.pregunta,model_rol_pregunta,financiera_buro_rol
 
 manager_financiera_rol_validador_identidad,rol.validador.identidad,model_rol_validador_identidad,financiera_buro_rol_base.manager,1,1,1,1
 user_financiera_rol_validador_identidad,rol.validador.identidad,model_rol_validador_identidad,financiera_buro_rol_base.user,1,1,1,1
+
+
+
+
+
+manager_financiera_rol_cda,financiera.rol.cda,model_financiera_rol_cda,financiera_buro_rol_base.manager,1,1,1,1
+user_financiera_rol_cda,financiera.rol.cda,model_financiera_rol_cda,financiera_buro_rol_base.user,1,0,0,0
+
+manager_financiera_rol_cda_resultado,financiera.rol.cda.resultado,model_financiera_rol_cda_resultado,financiera_buro_rol_base.manager,1,1,1,1
+user_financiera_rol_cda_resultado,financiera.rol.cda.resultado,model_financiera_rol_cda_resultado,financiera_buro_rol_base.user,1,1,1,0
+
+manager_financiera_rol_cda_regla,financiera.rol.cda.regla,model_financiera_rol_cda_regla,financiera_buro_rol_base.manager,1,1,1,1
+user_financiera_rol_cda_regla,financiera.rol.cda.regla,model_financiera_rol_cda_regla,financiera_buro_rol_base.user,1,1,1,0
+
+manager_financiera_rol_informe,financiera.rol.informe,model_financiera_rol_informe,financiera_buro_rol_base.manager,1,1,1,0
+user_financiera_rol_informe,financiera.rol.informe,model_financiera_rol_informe,financiera_buro_rol_base.user,1,1,1,0
+
+manager_financiera_rol_informe_variable,financiera.rol.informe.variable,model_financiera_rol_informe_variable,financiera_buro_rol_base.manager,1,1,1,0
+user_financiera_rol_informe_variable,financiera.rol.informe.variable,model_financiera_rol_informe_variable,financiera_buro_rol_base.user,1,1,1,0

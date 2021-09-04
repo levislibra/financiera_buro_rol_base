@@ -44,6 +44,22 @@
 												<field name="porcentaje_respuestas_correctas"/>
                       </group>
 									</group>
+									<group>
+										<group>
+											<field name="asignar_nombre_cliente"/>
+											<field name="asignar_nombre_cliente_variable" attrs="{'invisible': [('asignar_nombre_cliente','=',False)]}"/>
+											
+											<field name="asignar_direccion_cliente"/>
+											<field name="asignar_direccion_cliente_variable" attrs="{'invisible': [('asignar_direccion_cliente','=',False)]}"/>
+
+											<field name="asignar_identificacion_cliente"/>
+											<field name="asignar_identificacion_cliente_variable" attrs="{'invisible': [('asignar_identificacion_cliente','=',False)]}"/>
+
+											<field name="asignar_genero_cliente"/>
+											<field name="asignar_genero_cliente_variable" attrs="{'invisible': [('asignar_genero_cliente','=',False)]}"/>
+										</group>
+										<group></group>
+									</group>
 									<notebook>
 										<page name="cda" string="Modelos CDA">
 											<field name="cda_ids">

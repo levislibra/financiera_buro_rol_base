@@ -6,8 +6,10 @@ from datetime import date
 from openerp.exceptions import UserError, ValidationError
 import time
 import requests
+# import request
 import json
 import rol_request_data
+from dateutil.parser import parse
 
 class ExtendsResPartnerRol(models.Model):
 	_name = 'res.partner'
@@ -25,20 +27,21 @@ class ExtendsResPartnerRol(models.Model):
 	rol_cuit = fields.Char('Identificacion', related='rol_id.persona_id.rol_id')
 	rol_perfil_letra = fields.Char('Perfil', related='rol_id.persona_id.perfil_id.letra')
 	rol_perfil_texto = fields.Char('Detalle', related='rol_id.persona_id.perfil_id.texto')
-
 	rol_experto_nombre = fields.Char('Modelo evaluado', related='rol_id.persona_id.experto_id.nombre')
 	rol_experto_codigo = fields.Char('Codigo', related='rol_id.persona_id.experto_id.codigo')
 	rol_experto_ingreso = fields.Char('Ingresos', related='rol_id.persona_id.experto_id.ingreso')
 	rol_experto_resultado = fields.Char('Resultado', related='rol_id.persona_id.experto_id.resultado',
 		help='S: Superado\nN: Rechazado\nI: Incompleto\nV: Verificar.')
 	rol_experto_compromiso_mensual = fields.Char('Compromiso mensual', related='rol_id.persona_id.experto_id.compromiso_mensual')
-	rol_capacidad_pago_mensual = fields.Float('ROL - CPM', digits=(16,2))
-	rol_partner_tipo_id = fields.Many2one('financiera.partner.tipo', 'ROL - Tipo de cliente')
-	# Info perfil
 	rol_domicilio = fields.Char('Domicilio', compute='_compute_rol_domicilio')
 	rol_fecha_informe = fields.Datetime('Fecha del informe', related='rol_id.fecha')
 	rol_cda_aprobado_id = fields.Many2one('financiera.buro.rol.cda', 'CDA aprobado')
 	rol_cda_reporte_ids = fields.One2many('financiera.buro.rol.cda.reporte', 'partner_id', 'CDA reporte')
+	# Nueva integracion
+	rol_capacidad_pago_mensual = fields.Float('ROL - CPM', digits=(16,2))
+	rol_partner_tipo_id = fields.Many2one('financiera.partner.tipo', 'ROL - Tipo de cliente')
+	rol_informe_ids = fields.One2many('financiera.rol.informe', 'partner_id', 'ROL - Informes')
+	rol_variable_ids = fields.One2many('financiera.rol.informe.variable', 'partner_id', 'Variables')
 	# Validador de identidad segun preguntas
 	rol_validador_identidad_id = fields.Many2one('rol.validador.identidad', 'Preguntas')
 
@@ -75,6 +78,67 @@ class ExtendsResPartnerRol(models.Model):
 			ValidationError("Falta configuracion Riesgo Online.")
 		return ret
 
+	def is_int(self, value):
+		try:
+			int(value)
+			return True
+		except ValueError:
+			return False
+
+	def is_float(self, value):
+		try:
+			float(value)
+			return True
+		except ValueError:
+			return False
+
+	def is_date(self, value, fuzzy=False):
+		try: 
+			parse(value, fuzzy=fuzzy)
+			return True
+		except ValueError:
+			return False
+
+	def process_dict(self, parent_key, key, value, list_values, profundidad):
+		type = None
+		if isinstance(value, dict):
+			for sub_key, sub_value in value.iteritems():
+				if key:
+					self.process_dict(key, key+'_'+sub_key, sub_value, list_values, profundidad+1)
+				else:
+					self.process_dict("", sub_key, sub_value, list_values, profundidad+1)
+		elif isinstance(value, list):
+			i = 1
+			for sub_value in value:
+				self.process_dict(key, key+'_'+str(i), sub_value, list_values, profundidad+1)
+				i += 1
+		elif self.is_int(value):
+			type = 'Numero'
+			# value = int(value)
+		elif self.is_float(value):
+			type = 'Decimal'
+			# value = float(value)
+		elif self.is_date(value):
+			type = 'Fecha'
+			# value = parse(value)
+		else:
+			type = 'Texto'
+		if type:
+			variable_nombre = key
+			variable_valor = value
+			variable_descripcion = key
+			variable_tipo = type
+			variable_values = {
+				'partner_id': self.id,
+				'name': variable_nombre,
+				'valor': variable_valor,
+				'descripcion': variable_descripcion,
+				'tipo': variable_tipo,
+				'profundidad': profundidad,
+				'sub_name': parent_key,
+			}
+			list_values.append((0,0, variable_values))
+
 	# Funcion documentada en la API!
 	def consultar_informe_rol(self, forzar=False):
 		rol_configuracion_id = self.company_id.rol_configuracion_id
@@ -97,27 +161,23 @@ class ExtendsResPartnerRol(models.Model):
 					url = 'https://informe.riesgoonline.com/api/informes/consultar/'
 					url = url + cuit
 					r = requests.get(url, params=params)
-					data = r.json()
-					new_rol_id = self.env['rol'].from_dict(data, self.id)
-					# new_rol_id.partner_id = self.id
-					if len(new_rol_id.persona_id) > 0:
-						new_rol_id.state = 'OK'
-						self.rol_ids = [new_rol_id.id]
-						self.rol_id = new_rol_id.id
-					elif 'error' in data:
-						new_rol_id.state = "Error: " + data['mensaje']
-						self.rol_id = None
-					else:
-						new_rol_id.state = 'Error desconocido al solicitar informe'
-						self.rol_id = None
+					if r.status_code == 200:
+						data = r.json()
+						nuevo_informe_id = self.env['financiera.rol.informe'].create({})
+						self.rol_informe_ids = [nuevo_informe_id.id]
+						self.rol_variable_ids = [(6, 0, [])]
+						list_values = []
+						self.process_dict("", "", data, list_values, 0)
+						nuevo_informe_id.write({'variable_ids': list_values})
+						self.button_asignar_identidad_rol()
+						self.button_asignar_domicilio_rol()
+						rol_configuracion_id.id_informe += 1		
+						# if rol_configuracion_id.ejecutar_cda_al_solicitar_informe:
+						# 	nuevo_informe_id.ejecutar_cdas()
 				else:
 					ValidationError("Falta DNI, CUIT o CUIL.")
 		else:
 			ValidationError("Falta configuracion Riesgo Online.")
-		if rol_configuracion_id.asignar_identidad_rol:
-			self.button_asignar_identidad_rol()
-		if rol_configuracion_id.asignar_domicilio_rol:
-			self.button_asignar_domicilio_rol()
 		return True
 
 
@@ -173,10 +233,6 @@ class ExtendsResPartnerRol(models.Model):
 					ValidationError("Falta DNI, CUIT o CUIL.")
 		else:
 			ValidationError("Falta configuracion Riesgo Online.")
-		if rol_configuracion_id.asignar_identidad_rol:
-			self.button_asignar_identidad_rol()
-		if rol_configuracion_id.asignar_domicilio_rol:
-			self.button_asignar_domicilio_rol()
 		return True
 	
 	@api.one
@@ -189,42 +245,69 @@ class ExtendsResPartnerRol(models.Model):
 	def button_descargar_informe_rol(self):
 		rol_configuracion_id = self.company_id.rol_configuracion_id
 		if rol_configuracion_id:
-			if len(self.rol_id) > 0 and len(self.rol_id.persona_id) > 0 and len(self.rol_id.informe_id) > 0:
-				cuit = self.rol_id.persona_id.rol_id
-				informe = self.rol_id.informe_id.rol_id
-				data = None
-				if cuit and informe:
-					url = 'https://informe.riesgoonline.com/api/informes/descargar/%s/%s'%(str(cuit),str(informe))
-					url = url + '?username=%s&password=%s'%(rol_configuracion_id.usuario, rol_configuracion_id.password)
-					opciones = '&opciones[]=contenidos&opciones[]=modulos&opciones[]=adjuntos&opciones[]=graficos&opciones[]=consultas'
-					url = url + opciones
-				else:
-					raise UserError("CUIT o Nro de informe no encontrado.")
-				return {
-					'name'     : 'ROL informe',
-					'res_model': 'ir.actions.act_url',
-					'type'     : 'ir.actions.act_url',
-					'target'   : 'new',
-					'url'      : url
-				}
+			cuit = self.get_variable_name('persona_id')
+			informe = self.get_variable_name('informe_id')
+			if cuit and informe:
+				cuit = cuit.valor
+				informe = informe.valor
+				url = 'https://informe.riesgoonline.com/api/informes/descargar/%s/%s'%(str(cuit),str(informe))
+				url = url + '?username=%s&password=%s'%(rol_configuracion_id.usuario, rol_configuracion_id.password)
+				opciones = '&opciones[]=contenidos&opciones[]=modulos&opciones[]=adjuntos&opciones[]=graficos&opciones[]=consultas'
+				url = url + opciones
 			else:
-				raise UserError("El informe no existe.")
+				raise UserError("CUIT o Nro de informe no encontrado.")
+			return {
+				'name'     : 'ROL informe',
+				'res_model': 'ir.actions.act_url',
+				'type'     : 'ir.actions.act_url',
+				'target'   : 'new',
+				'url'      : url
+			}
 		else:
 			raise UserError("ROL no esta configurado.")
 
+	def get_variable_name(self, name):
+		ret = False
+		for variable_id in self.rol_variable_ids:
+			if variable_id.name == name:
+				ret = variable_id
+		return ret
+
+	def get_variable_value(self, value):
+		ret = False
+		for variable_id in self.rol_variable_ids:
+			if variable_id.valor == value:
+				ret = variable_id
+		return ret
+
 	@api.one
 	def _compute_rol_domicilio(self):
-		for domicilio_id in self.rol_id.persona_id.domicilio_ids:
-			if domicilio_id.tipo == 'legal_real_ws':
-				self.rol_domicilio = domicilio_id.domicilio
+		variable_id = self.get_variable_value('legal_real_ws')
+		if variable_id:
+			variable_domicilio_id = self.get_variable_name(variable_id.sub_name+'_domicilio')
+			if variable_domicilio_id:
+				self.rol_domicilio = variable_domicilio_id.valor
 
 	@api.multi
 	def button_asignar_identidad_rol(self):
 		# Solo se asignaran datos inalterables como nombre y cuit
-		if self.rol_cuit != False:
-			self.main_id_number = self.rol_cuit
-		if self.rol_name != False:
-			self.name = self.rol_name
+		rol_configuracion_id = self.company_id.rol_configuracion_id
+		if rol_configuracion_id:
+			if rol_configuracion_id.asignar_nombre_cliente and rol_configuracion_id.asignar_nombre_cliente_variable:
+				variable_id = self.get_variable_name(rol_configuracion_id.asignar_nombre_cliente_variable)
+				if variable_id:
+					self.name = variable_id.valor
+			if rol_configuracion_id.asignar_identificacion_cliente and rol_configuracion_id.asignar_identificacion_cliente_variable:
+				variable_id = self.get_variable_name(rol_configuracion_id.asignar_identificacion_cliente_variable)
+				if variable_id:
+					self.main_id_number = variable_id.valor
+			if rol_configuracion_id.asignar_genero_cliente and rol_configuracion_id.asignar_genero_cliente_variable:
+				variable_id = self.get_variable_name(rol_configuracion_id.asignar_genero_cliente_variable)
+				if variable_id:
+					if variable_id.valor == 'M':
+						self.sexo = 'masculino'
+					else:
+						self.sexo = 'femenino'
 		return {'type': 'ir.actions.do_nothing'}
 	
 	@api.multi
@@ -256,48 +339,50 @@ class ExtendsResPartnerRol(models.Model):
 
 	@api.one
 	def check_cdas(self):
-		rol_configuracion_id = self.company_id.rol_configuracion_id
-		if len(self.rol_id) > 0:
-			persona_id = self.rol_id.persona_id
-			sexo = persona_id.sexo
-			edad = persona_id.edad
-			# Generales
-			fallecido = persona_id.fallecido
-			perfil_letra = persona_id.perfil_id.letra
-			# Actividad
-			empleado_vigencia = persona_id.actividad_id.actividad_empleado_vigencia
-			monotributista_vigencia = persona_id.actividad_id.actividad_monotributista_vigencia
-			autonomo_vigencia = persona_id.actividad_id.actividad_autonomo_vigencia
-			empleado_antiguedad = persona_id.actividad_id.actividad_empleado_antiguedad
-			monotributista_antiguedad = persona_id.actividad_id.actividad_monotributista_antiguedad
-			autonomo_antiguedad = persona_id.actividad_id.actividad_autonomo_antiguedad
-			empleado_continuidad = persona_id.actividad_id.actividad_empleado_continuidad
-			monotributista_continuidad = persona_id.actividad_id.actividad_monotributista_continuidad
-			autonomo_continuidad = persona_id.actividad_id.actividad_autonomo_continuidad
-			jubilado_pensionado = persona_id.jubilado
-			# Bancarizacion
-			resumen_situaciones_bancarias = persona_id.bancarizacion_id.resumen_situaciones_bancarias()
-			cda_ids = self.company_id.rol_configuracion_id.cda_ids
-			for cda_id in cda_ids:
-				if cda_id.activo:
-					cda_evaluacion = cda_id.evaluar_cda(self.id, fallecido, perfil_letra, sexo, edad, empleado_vigencia, monotributista_vigencia, autonomo_vigencia,
-						empleado_antiguedad, monotributista_antiguedad, autonomo_antiguedad, 
-						empleado_continuidad, monotributista_continuidad, autonomo_continuidad, jubilado_pensionado,
-						resumen_situaciones_bancarias)
-					if rol_configuracion_id.asignar_cda_otorgamiento:
-						if cda_evaluacion == 'aprobado':
-							self.rol_partner_tipo_id = cda_id.partner_tipo_id.id
-							self.rol_capacidad_pago_mensual = cda_id.capacidad_pago_mensual
-							self.partner_tipo_id = cda_id.partner_tipo_id.id
-							self.capacidad_pago_mensual = cda_id.capacidad_pago_mensual
-							self.rol_cda_aprobado_id = cda_id.id
-							break
-						else:
-							self.rol_partner_tipo_id = False
-							self.rol_capacidad_pago_mensual = 0
-							self.partner_tipo_id = False
-							self.capacidad_pago_mensual = 0
-							self.rol_cda_aprobado_id = None
+		if self.rol_informe_ids and len(self.rol_informe_ids) > 0:
+			self.rol_informe_ids[0].ejecutar_cdas()
+		# rol_configuracion_id = self.company_id.rol_configuracion_id
+		# if len(self.rol_id) > 0:
+		# 	persona_id = self.rol_id.persona_id
+		# 	sexo = persona_id.sexo
+		# 	edad = persona_id.edad
+		# 	# Generales
+		# 	fallecido = persona_id.fallecido
+		# 	perfil_letra = persona_id.perfil_id.letra
+		# 	# Actividad
+		# 	empleado_vigencia = persona_id.actividad_id.actividad_empleado_vigencia
+		# 	monotributista_vigencia = persona_id.actividad_id.actividad_monotributista_vigencia
+		# 	autonomo_vigencia = persona_id.actividad_id.actividad_autonomo_vigencia
+		# 	empleado_antiguedad = persona_id.actividad_id.actividad_empleado_antiguedad
+		# 	monotributista_antiguedad = persona_id.actividad_id.actividad_monotributista_antiguedad
+		# 	autonomo_antiguedad = persona_id.actividad_id.actividad_autonomo_antiguedad
+		# 	empleado_continuidad = persona_id.actividad_id.actividad_empleado_continuidad
+		# 	monotributista_continuidad = persona_id.actividad_id.actividad_monotributista_continuidad
+		# 	autonomo_continuidad = persona_id.actividad_id.actividad_autonomo_continuidad
+		# 	jubilado_pensionado = persona_id.jubilado
+		# 	# Bancarizacion
+		# 	resumen_situaciones_bancarias = persona_id.bancarizacion_id.resumen_situaciones_bancarias()
+		# 	cda_ids = self.company_id.rol_configuracion_id.cda_ids
+		# 	for cda_id in cda_ids:
+		# 		if cda_id.activo:
+		# 			cda_evaluacion = cda_id.evaluar_cda(self.id, fallecido, perfil_letra, sexo, edad, empleado_vigencia, monotributista_vigencia, autonomo_vigencia,
+		# 				empleado_antiguedad, monotributista_antiguedad, autonomo_antiguedad, 
+		# 				empleado_continuidad, monotributista_continuidad, autonomo_continuidad, jubilado_pensionado,
+		# 				resumen_situaciones_bancarias)
+		# 			if rol_configuracion_id.asignar_cda_otorgamiento:
+		# 				if cda_evaluacion == 'aprobado':
+		# 					self.rol_partner_tipo_id = cda_id.partner_tipo_id.id
+		# 					self.rol_capacidad_pago_mensual = cda_id.capacidad_pago_mensual
+		# 					self.partner_tipo_id = cda_id.partner_tipo_id.id
+		# 					self.capacidad_pago_mensual = cda_id.capacidad_pago_mensual
+		# 					self.rol_cda_aprobado_id = cda_id.id
+		# 					break
+		# 				else:
+		# 					self.rol_partner_tipo_id = False
+		# 					self.rol_capacidad_pago_mensual = 0
+		# 					self.partner_tipo_id = False
+		# 					self.capacidad_pago_mensual = 0
+		# 					self.rol_cda_aprobado_id = None
 	
 	# Funcion documentada en la API!
 	@api.one

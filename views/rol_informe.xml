@@ -1,0 +1,142 @@
+<openerp>
+  <data>
+
+    <!-- Lista de informes solicitados -->
+    <record model="ir.ui.view" id="financiera_rol_informe_tree">
+      <field name="name">financiera.rol.informe.tree</field>
+      <field name="model">financiera.rol.informe</field>
+      <field name="arch" type="xml">
+        <tree create="false" delete="false" edit="false">
+          <field name="create_date" string="Fecha"/>
+          <field name="partner_id"/>
+          <field name="variable_ids"/>
+          <field name="company_id" groups="base.group_erp_manager"/>
+        </tree>
+      </field>
+    </record>
+
+
+		<record id="financiera_rol_informe_form" model="ir.ui.view">
+			<field name="name">financiera.rol.informe.form</field>
+			<field name="model">financiera.rol.informe</field>
+			<field name="arch" type="xml">
+				<form string="Informe" create="false" delete="false" edit="false">
+					<header>
+						<button string="Ejecutar CDA" name="ejecutar_cdas" type="object" class="oe_highlight"/>
+					</header>
+					<sheet>
+						<group>
+							<field name="partner_id"/>
+						</group>
+						<notebook>
+							<page string="Variables">
+								<group>
+									<group>
+										<div>
+											<field name="variable_ids">
+												<tree>
+													<field name="fecha"/>
+													<field name="name"/>
+													<field name="valor"/>
+													<field name="descripcion"/>
+													<field name="tipo"/>
+												</tree>
+											</field>
+										</div>
+									</group>
+									<group>
+										<div>
+											<field name="cda_resultado_ids">
+												<tree>
+													<field name="id"/>
+													<field name="create_date" string="Fecha"/>
+													<field name="name"/>
+													<field name="regla_ids"/>
+													<field name="otorgar_cpm"/>
+													<field name="otorgar_partner_tipo_id"/>
+													<field name="resultado"/>
+												</tree>
+												<form>
+													<sheet>
+														<script>
+															$(document).ready(function(){
+																$('.modal-dialog').css({'width': '86%', 'height': '97%'});
+																$('.modal-content').css({'height': '100%'});
+																$('.modal-body').css({'height': '100%'});
+															});
+														</script>
+														<group>
+															<field name="create_date" string="Fecha"/>
+															<field name="name"/>
+															<field name="resultado"/>
+															<field name="otorgar_cpm"/>
+															<field name="otorgar_partner_tipo_id"/>
+															<field name="regla_ids">
+																<tree>
+																	<field name="variable"/>
+																	<field name="informe_valor"/>
+																	<field name="operador"/>
+																	<field name="valor"/>
+																	<field name="resultado"/>
+																	<field name="detalle"/>
+																	<field name="cpm_multiplicar"/>
+																	<field name="cpm_sumar"/>
+																	<field name="cpm_multiplicar_valor"/>
+																</tree>
+															</field>
+														</group>
+													</sheet>
+												</form>
+											</field>
+										</div>
+									</group>
+								</group>
+							</page>
+						</notebook>
+					</sheet>
+				</form>
+			</field>
+		</record>
+
+    <record model="ir.actions.act_window" id="financiera_rol_informe_action">
+      <field name="name">Lista de informes solicitados</field>
+      <field name="res_model">financiera.rol.informe</field>
+      <field name="view_mode">tree,form</field>
+      <field name="view_id" ref="financiera_rol_informe_tree"/>
+    </record>
+
+
+		<!-- Variables obtenidas -->
+
+		<record model="ir.ui.view" id="financiera_rol_informe_variable_tree">
+      <field name="name">financiera.rol.informe.variable.tree</field>
+      <field name="model">financiera.rol.informe.variable</field>
+      <field name="arch" type="xml">
+        <tree create="false" delete="false" edit="false">
+          <field name="create_date" string="Fecha"/>
+          <field name="partner_id"/>
+					<field name="informe_id"/>
+          <field name="descripcion"/>
+					<field name="valor"/>
+					<field name="name"/>
+          <field name="company_id" groups="base.group_erp_manager"/>
+        </tree>
+      </field>
+    </record>
+
+		<record model="ir.actions.act_window" id="financiera_rol_informe_variable_action">
+      <field name="name">Lista de variables por informes</field>
+      <field name="res_model">financiera.rol.informe.variable</field>
+      <field name="view_mode">tree</field>
+      <field name="view_id" ref="financiera_rol_informe_variable_tree"/>
+    </record>
+
+    <!-- menu categories -->
+    
+    <menuitem name="Informes" id="menu_informes" sequence="10" parent="menu_rol"/>
+
+    <menuitem name="Informes" id="menu_informes_action" sequence="1" parent="menu_informes" action="financiera_rol_informe_action"/>
+		<menuitem name="Variables" id="menu_informes_variable_action" sequence="10" parent="menu_informes" action="financiera_rol_informe_variable_action"/>
+
+  </data>
+</openerp>

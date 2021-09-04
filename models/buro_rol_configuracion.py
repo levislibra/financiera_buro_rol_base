@@ -15,6 +15,8 @@ class FinancieraBuroRolConfiguracion(models.Model):
 	password = fields.Char('Password')
 	saldo_informes = fields.Integer('Saldo Informes')
 	
+	id_informe = fields.Integer('Id proximo informe', default=1)
+	id_cuestionario = fields.Integer('Id proximo cuestionario', default=1)
 	solicitar_informe_enviar_a_revision = fields.Boolean('Solicitar informe al enviar a revision')
 	origen_ids = fields.Many2many('financiera.prestamo.origen', 'financiera_origen_configrol_rel', 'origen_id', 'config_id', string='Solicitar informe al enviar a revision si el origen es')
 	solicitar_informe_dias = fields.Integer('Dias para forzar solicitud de nuevo informe')
@@ -27,6 +29,18 @@ class FinancieraBuroRolConfiguracion(models.Model):
 	porcentaje_respuestas_correctas = fields.Integer('Porcentaje respuestas correctas para validar',
 		help="Valor de 0 a 100. Por lo general son 5 preguntas. Por ejemplo: 80 es para 4 respuestas correctas de 5.")
 	cda_ids = fields.One2many('financiera.buro.rol.cda', 'config_id', 'Modelos CDA')
+	# Nueva integracion
+	asignar_nombre_cliente = fields.Boolean('Asignar Nombre al cliente')
+	asignar_nombre_cliente_variable = fields.Char('Variable para el Nombre', default='persona_nombre')
+	
+	asignar_direccion_cliente = fields.Boolean('Asignar Direccion al cliente')
+	asignar_direccion_cliente_variable = fields.Char('Variable para la direccion', default='persona_domicilios_1_domicilio')
+
+	asignar_identificacion_cliente = fields.Boolean('Asignar identificacion al cliente')
+	asignar_identificacion_cliente_variable = fields.Char('Variable para la identificacion', default='persona_id')
+
+	asignar_genero_cliente = fields.Boolean('Asignar genero al cliente')
+	asignar_genero_cliente_variable = fields.Char('Variable para genero', default='persona_sexo')
 	company_id = fields.Many2one('res.company', 'Empresa', required=False, default=lambda self: self.env['res.company']._company_default_get('financiera.buro.rol.configuracion'))
 	
 	@api.one

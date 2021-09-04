@@ -71,5 +71,27 @@
 				<field name="domain_force">[('company_id','child_of',[user.company_id.id])]</field>
 			</record>
 
+			<!-- Nueva integracion -->
+			<record id="rol_informe_rule" model="ir.rule">
+				<field name="name">rol Informe multi-company</field>
+				<field name="model_id" ref="model_financiera_rol_informe"/>
+				<field eval="True" name="global"/>
+				<field name="domain_force">[('company_id','child_of',[user.company_id.id])]</field>
+			</record>
+	
+			<record id="rol_informe_variable_rule" model="ir.rule">
+				<field name="name">rol Informe Variable multi-company</field>
+				<field name="model_id" ref="model_financiera_rol_informe_variable"/>
+				<field eval="True" name="global"/>
+				<field name="domain_force">[('company_id','child_of',[user.company_id.id])]</field>
+			</record>
+	
+			<record id="rol_cda_rule" model="ir.rule">
+				<field name="name">rol CDA multi-company</field>
+				<field name="model_id" ref="model_financiera_rol_cda"/>
+				<field eval="True" name="global"/>
+				<field name="domain_force">[('company_id','child_of',[user.company_id.id])]</field>
+			</record>
+
     <!-- </data>  -->
 </openerp>

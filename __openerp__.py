@@ -32,6 +32,9 @@
         'views/buro_rol_informe.xml',
         'views/extends_res_company.xml',
 				'views/extends_account_invoice.xml',
+				'views/extends_res_partner.xml',
+				'views/rol_cda.xml',
+				'views/rol_informe.xml',
         # 'data/defaultdata.xml',
     ],
     # only loaded in demonstration mode
