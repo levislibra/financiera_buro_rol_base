@@ -16,7 +16,14 @@
 										<field name="rol_informe_ids">
 											<tree>
 												<field name="create_date" string="Fecha"/>
-												<field name="variable_ids"/>
+												<field name="variable_ids" readonly='1'>
+													<tree>
+														<!-- <field name="sub_name"/> -->
+														<field name="name"/>
+														<field name="valor"/>
+														<field name="tipo"/>
+													</tree>
+												</field>
 											</tree>
 										</field>
 									</group>
@@ -43,10 +50,10 @@
           <group name='rol' string="Riesgo Online" col="1" style="background-color: #E6E6E6">
             <field name="rol_variable_ids">
 							<tree limit="10">
-								<field name="id"/>
-								<field name="profundidad"/>
-								<field name="descripcion"/>
+								<!-- <field name="sub_name"/> -->
+								<field name="name"/>
 								<field name="valor"/>
+								<field name="tipo"/>
 							</tree>
 						</field>
 						<group col="2">
@@ -65,7 +72,7 @@
 							<button name="obtener_preguntas_rol" string="Obtener preguntas ROL" type="object"/>
 							<button name="button_asignar_identidad_rol" string="Asignar identidad ROL" type="object"/>
 							<button name="button_asignar_cpm_y_tipo_rol" string="Asignar CPM y Tipo ROL" type="object"/>
-							<button name="check_cdas" string="Ejecutar CDAs ROL" type="object"/>
+							<button name="check_cdas_rol" string="Ejecutar CDAs ROL" type="object"/>
             </group>
           </group>
         </xpath>

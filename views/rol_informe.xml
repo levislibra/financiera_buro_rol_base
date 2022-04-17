@@ -25,6 +25,13 @@
 						<button string="Ejecutar CDA" name="ejecutar_cdas" type="object" class="oe_highlight"/>
 					</header>
 					<sheet>
+						<script>
+							$(document).ready(function(){
+								$('.modal-dialog').css({'width': '86%', 'height': '97%'});
+								$('.modal-content').css({'height': '100%'});
+								$('.modal-body').css({'height': '100%'});
+							});
+						</script>
 						<group>
 							<field name="partner_id"/>
 						</group>
@@ -33,12 +40,11 @@
 								<group>
 									<group>
 										<div>
-											<field name="variable_ids">
+											<field name="variable_ids" readonly='1'>
 												<tree>
-													<field name="fecha"/>
+													<!-- <field name="sub_name"/> -->
 													<field name="name"/>
 													<field name="valor"/>
-													<field name="descripcion"/>
 													<field name="tipo"/>
 												</tree>
 											</field>

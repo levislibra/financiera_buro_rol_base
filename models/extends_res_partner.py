@@ -99,45 +99,53 @@ class ExtendsResPartnerRol(models.Model):
 		except ValueError:
 			return False
 
-	def process_dict(self, parent_key, key, value, list_values, profundidad):
+	def rol_process_dict(self, parent_key, key, value, list_values, profundidad):
 		type = None
 		if isinstance(value, dict):
 			for sub_key, sub_value in value.iteritems():
 				if key:
-					self.process_dict(key, key+'_'+sub_key, sub_value, list_values, profundidad+1)
+					self.rol_process_dict(key, sub_key, sub_value, list_values, profundidad+1)
 				else:
-					self.process_dict("", sub_key, sub_value, list_values, profundidad+1)
+					self.rol_process_dict("", sub_key, sub_value, list_values, profundidad+1)
 		elif isinstance(value, list):
 			i = 1
 			for sub_value in value:
-				self.process_dict(key, key+'_'+str(i), sub_value, list_values, profundidad+1)
+				self.rol_process_dict(key, key+'_'+str(i), sub_value, list_values, profundidad+1)
 				i += 1
 		elif self.is_int(value):
 			type = 'Numero'
-			# value = int(value)
+			value = str(value)
 		elif self.is_float(value):
 			type = 'Decimal'
-			# value = float(value)
+			value = str(value)
 		elif self.is_date(value):
 			type = 'Fecha'
-			# value = parse(value)
+			value = str(value)
 		else:
 			type = 'Texto'
 		if type:
-			variable_nombre = key
+			variable_nombre = ''
+			if parent_key:
+				variable_nombre = parent_key+'_'+key
+			else:
+				variable_nombre = key
 			variable_valor = value
 			variable_descripcion = key
 			variable_tipo = type
-			variable_values = {
-				'partner_id': self.id,
-				'name': variable_nombre,
-				'valor': variable_valor,
-				'descripcion': variable_descripcion,
-				'tipo': variable_tipo,
-				'profundidad': profundidad,
-				'sub_name': parent_key,
-			}
-			list_values.append((0,0, variable_values))
+			flag_pass = True
+			if parent_key and (('telefonos_' in parent_key and len(parent_key) > 11) or ('informe' == parent_key)):
+				flag_pass = False
+			if flag_pass:
+				variable_values = {
+					'partner_id': self.id,
+					'name': variable_nombre,
+					'valor': variable_valor,
+					'descripcion': variable_descripcion,
+					'tipo': variable_tipo,
+					'profundidad': profundidad,
+					'sub_name': parent_key,
+				}
+				list_values.append((0,0, variable_values))
 
 	# Funcion documentada en la API!
 	def consultar_informe_rol(self, forzar=False):
@@ -167,14 +175,13 @@ class ExtendsResPartnerRol(models.Model):
 						self.rol_informe_ids = [nuevo_informe_id.id]
 						self.rol_variable_ids = [(6, 0, [])]
 						list_values = []
-						self.process_dict("", "", data, list_values, 0)
+						self.rol_process_dict("", "", data, list_values, 0)
 						nuevo_informe_id.write({'variable_ids': list_values})
-						if rol_configuracion_id.asignar_identidad_rol:
-							self.button_asignar_identidad_rol()
-						if rol_configuracion_id.asignar_domicilio_rol:
-							self.button_asignar_domicilio_rol()
+						self.button_asignar_identidad_rol()
+						self.button_asignar_domicilio_rol()
+						if rol_configuracion_id.ejecutar_cda:
+							self.check_cdas_rol()
 						if rol_configuracion_id.asignar_cda_otorgamiento:
-							self.check_cdas()
 							self.button_asignar_cpm_y_tipo_rol()
 						rol_configuracion_id.id_informe += 1
 				else:
@@ -198,44 +205,43 @@ class ExtendsResPartnerRol(models.Model):
 		rol_configuracion_id = self.company_id.rol_configuracion_id
 		if rol_configuracion_id:
 			dias_ultimo_informe = 0
-			if len(self.rol_id) > 0 and self.rol_id.fecha:
-				fecha_ultimo_informe = datetime.strptime(self.rol_id.fecha, "%Y-%m-%d %H:%M:%S")
-				fecha_actual = datetime.now()
-				diferencia = fecha_actual - fecha_ultimo_informe
-				dias_ultimo_informe = diferencia.days
-			if forzar or len(self.rol_id) == 0 or self.rol_id.fecha == False or dias_ultimo_informe >= rol_configuracion_id.solicitar_informe_dias:
-				params = {
-					'username': rol_configuracion_id.usuario,
-					'password': rol_configuracion_id.password,
-					'formato': 'json',
-					'version': 2,
-					# 'procesar_forzado': 1,
-				}
-				if rol_configuracion_id.modelo_experto:
-					params['procesar_experto'] = rol_configuracion_id.modelo_experto
-				cuit = self.buscar_persona()
-				if cuit:
-					url = 'https://informe.riesgoonline.com/api/informes/solicitar/'
-					url = url + cuit
-					r = requests.get(url, params=params)
-					if r.status_code == 200:
-						data = r.json()
-						nuevo_informe_id = self.env['financiera.rol.informe'].create({})
-						self.rol_informe_ids = [nuevo_informe_id.id]
-						self.rol_variable_ids = [(6, 0, [])]
-						list_values = []
-						self.process_dict("", "", data, list_values, 0)
-						nuevo_informe_id.write({'variable_ids': list_values})
-						if rol_configuracion_id.asignar_identidad_rol:
-							self.button_asignar_identidad_rol()
-						if rol_configuracion_id.asignar_domicilio_rol:
-							self.button_asignar_domicilio_rol()
-						if rol_configuracion_id.asignar_cda_otorgamiento:
-							self.check_cdas()
-							self.button_asignar_cpm_y_tipo_rol()
-						rol_configuracion_id.id_informe += 1
-				else:
-					ValidationError("Falta DNI, CUIT o CUIL.")
+			# if len(self.rol_id) > 0 and self.rol_id.fecha:
+			# 	fecha_ultimo_informe = datetime.strptime(self.rol_id.fecha, "%Y-%m-%d %H:%M:%S")
+			# 	fecha_actual = datetime.now()
+			# 	diferencia = fecha_actual - fecha_ultimo_informe
+			# 	dias_ultimo_informe = diferencia.days
+			params = {
+				'username': rol_configuracion_id.usuario,
+				'password': rol_configuracion_id.password,
+				'formato': 'json',
+				'version': 2,
+			}
+			if forzar:
+				params['procesar_forzado'] = 1
+			if rol_configuracion_id.modelo_experto:
+				params['procesar_experto'] = rol_configuracion_id.modelo_experto
+			cuit = self.buscar_persona()
+			if cuit:
+				url = 'https://informe.riesgoonline.com/api/informes/solicitar/'
+				url = url + cuit
+				r = requests.get(url, params=params)
+				if r.status_code == 200:
+					data = r.json()
+					nuevo_informe_id = self.env['financiera.rol.informe'].create({})
+					self.rol_informe_ids = [nuevo_informe_id.id]
+					self.rol_variable_ids = [(6, 0, [])]
+					list_values = []
+					self.process_dict("", "", data, list_values, 0)
+					nuevo_informe_id.write({'variable_ids': list_values})
+					self.button_asignar_identidad_rol()
+					self.button_asignar_domicilio_rol()
+					if rol_configuracion_id.ejecutar_cda:
+							self.check_cdas_rol()
+					if rol_configuracion_id.asignar_cda_otorgamiento:
+						self.button_asignar_cpm_y_tipo_rol()
+					rol_configuracion_id.id_informe += 1
+			else:
+				ValidationError("Falta DNI, CUIT o CUIL.")
 		else:
 			ValidationError("Falta configuracion Riesgo Online.")
 		return True
@@ -343,7 +349,7 @@ class ExtendsResPartnerRol(models.Model):
 		return {'type': 'ir.actions.do_nothing'}
 
 	@api.one
-	def check_cdas(self):
+	def check_cdas_rol(self):
 		if self.rol_informe_ids and len(self.rol_informe_ids) > 0:
 			self.rol_informe_ids[0].ejecutar_cdas()
 	
@@ -395,4 +401,3 @@ class ExtendsResPartnerRol(models.Model):
 		else:
 			raise ValidationError("No supero el minimo requerido de respuestas correctas.")
 		return ret
-

@@ -80,9 +80,9 @@
 
     <!-- menu categories -->
     
-    <menuitem name="cdas" id="menu_cdas" sequence="18" parent="menu_rol"/>
+    <menuitem name="CDA" id="menu_cdas" sequence="18" parent="menu_rol"/>
 
-    <menuitem name="cdas" id="menu_cdas_action" sequence="1" parent="menu_cdas" action="financiera_rol_cda_action"/>
+    <menuitem name="CDA" id="menu_cdas_action" sequence="1" parent="menu_cdas" action="financiera_rol_cda_action"/>
 
   </data>
 </openerp>

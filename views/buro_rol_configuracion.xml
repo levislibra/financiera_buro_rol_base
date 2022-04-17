@@ -36,8 +36,7 @@
 													attrs="{'invisible': [('solicitar_informe_enviar_a_revision', '=', False)]}"/>
 												<field name="solicitar_informe_dias"/>
 												<field name="forzar_solicitud"/>
-												<field name="asignar_identidad_rol"/>
-												<field name="asignar_domicilio_rol"/>
+												<field name="ejecutar_cda"/>
 												<field name="asignar_cda_otorgamiento"/>
 												<field name="modelo_experto"/>
 												<field name="porcentaje_respuestas_correctas"/>
@@ -59,7 +58,7 @@
 										</group>
 										<group></group>
 									</group>
-									<notebook>
+									<!-- <notebook>
 										<page name="cda" string="Modelos CDA">
 											<field name="cda_ids">
 												<tree>
@@ -71,7 +70,7 @@
 												</tree>
 											</field>
 										</page>
-									</notebook>
+									</notebook> -->
                 </sheet>
             </form>
         </field>
