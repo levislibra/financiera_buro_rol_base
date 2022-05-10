@@ -79,73 +79,7 @@
       </field>
     </record>
 
-    <!-- Vista Form Riesgo Crediticio -->
-
-    <record id="financiera_res_partner_scoring_form_inherit"  model="ir.ui.view">
-      <field name="name">Extension Partner rol form</field>
-      <field name="model">res.partner</field>
-      <field name="inherit_id" ref="financiera_prestamos.financiera_res_partner_scoring_form"/>
-      <field name="arch" type="xml">
-        <xpath expr="//group[@name='risk']" position="after">
-          <group string="Riesgo Online" col="1" style="background-color: #E6E6E6">
-            <group col="1" attrs="{'invisible': [('rol_cuit', '=', False)]}">
-              <group col="2">
-                <field name="rol_fecha_informe" readonly="1"/>
-                <field name="rol_perfil_letra" readonly="1"/>
-              </group>
-              <field name="rol_perfil_texto" readonly="1"/>
-              <group col="2">
-                <group col="1">
-                  <field name="rol_name" readonly="1"/>
-                </group>
-                <group col="1">
-                  <field name="rol_cuit" readonly="1"/>
-                </group>
-              </group>
-              <button name="button_asignar_identidad_rol" string="Asignar identidad ROL al Cliente" attrs="{'invisible': ['|', ('rol_cuit', '=', False), ('rol_name', '=', False)]}" type="object" confirm="Desea confirmar?"/>
-              <field name="rol_domicilio" readonly="1"/>
-              <button name="button_asignar_domicilio_rol" string="Asignar domicilio ROL al Cliente" attrs="{'invisible': [('rol_domicilio', '=', False)]}" type="object" confirm="Desea confirmar?"/>
-              <group col="2">
-                <group col="1">
-                  <label for="rol_experto_nombre" string="Modelo evaluado"/>
-                  <div>
-                    <field name="rol_experto_nombre" class="oe_inline" readonly="1"/> | 
-                    <field name="rol_experto_codigo" class="oe_inline" readonly="1"/>
-                  </div>
-                </group>
-                <group col="1">
-                  <field name="rol_experto_resultado" readonly="1"/>
-                </group>
-              </group>
-              <group col="2">
-                <group col="1">
-                  <field name="rol_capacidad_pago_mensual" readonly="1"/>
-                </group>
-                <group col="1">
-                  <field name="rol_partner_tipo_id" readonly="1"/>
-                </group>
-              </group>
-              <button name="button_asignar_cpm_y_tipo_rol" string="Asignar tipo y CPM ROL al Cliente" type="object" confirm="Desea confirmar?"/>
-              <group col="2">
-                <group col="1">
-                  <field name="rol_experto_ingreso" readonly="1"/>
-                </group>
-                <group col="1">
-                  <field name="rol_experto_compromiso_mensual" readonly="1"/>
-                </group>
-              </group>
-            </group>
-            <separate col="1"/>
-            <group col="2">
-              <button name="button_solicitar_informe_rol" string="Solicitar informe" type="object" confirm="Desea solicitar el informe?"/>
-              <button name="button_consultar_informe_rol" string="Consultar informe" type="object" confirm="Desea consultar el informe?"/>
-            </group>
-          </group>
-        </xpath>
-      </field>
-		</record>
-		
-		<!-- Extends res.partner Cobranza y Seguimiento
+    <!-- Extends res.partner Cobranza y Seguimiento
 				Vista en Menu Deudores -->
 
 		<record id="cobranza_mora_cliente_sesion_form"  model="ir.ui.view">
