@@ -1,43 +1,38 @@
 # -*- coding: utf-8 -*-
 from openerp import models, fields, api
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from dateutil import relativedelta
-from datetime import date
 from openerp.exceptions import UserError, ValidationError
-import time
 import requests
-# import request
-import json
-import rol_request_data
 from dateutil.parser import parse
 
 class ExtendsResPartnerRol(models.Model):
 	_name = 'res.partner'
 	_inherit = 'res.partner'
 
-	rol_ids = fields.One2many('rol', 'partner_id', "ROL - Informes")
-	rol_id = fields.Many2one('rol', "ROL - Consulta actual")
-	domicilio_ids = fields.One2many(related='rol_id.persona_id.domicilio_ids')
-	telefono_ids = fields.One2many(related='rol_id.persona_id.telefono_ids')
-	personas_igual_domicilio_ids = fields.One2many(related='rol_id.persona_id.personas_igual_domicilio_ids')
-	personas_relacionada_ids = fields.One2many(related='rol_id.persona_id.personas_relacionada_ids')
-	vecino_ids = fields.One2many(related='rol_id.persona_id.vecino_ids')
-	rol_modelo = fields.Char('Rol modelo')
-	rol_name = fields.Char('Nombre', related='rol_id.persona_id.nombre')
-	rol_cuit = fields.Char('Identificacion', related='rol_id.persona_id.rol_id')
-	rol_perfil_letra = fields.Char('Perfil', related='rol_id.persona_id.perfil_id.letra')
-	rol_perfil_texto = fields.Char('Detalle', related='rol_id.persona_id.perfil_id.texto')
-	rol_experto_nombre = fields.Char('Modelo evaluado', related='rol_id.persona_id.experto_id.nombre')
-	rol_experto_codigo = fields.Char('Codigo', related='rol_id.persona_id.experto_id.codigo')
-	rol_experto_ingreso = fields.Char('Ingresos', related='rol_id.persona_id.experto_id.ingreso')
-	rol_experto_resultado = fields.Char('Resultado', related='rol_id.persona_id.experto_id.resultado',
-		help='S: Superado\nN: Rechazado\nI: Incompleto\nV: Verificar.')
-	rol_experto_compromiso_mensual = fields.Char('Compromiso mensual', related='rol_id.persona_id.experto_id.compromiso_mensual')
-	rol_domicilio = fields.Char('Domicilio', compute='_compute_rol_domicilio')
-	rol_fecha_informe = fields.Datetime('Fecha del informe', related='rol_id.fecha')
-	rol_cda_aprobado_id = fields.Many2one('financiera.buro.rol.cda', 'CDA aprobado')
-	rol_cda_reporte_ids = fields.One2many('financiera.buro.rol.cda.reporte', 'partner_id', 'CDA reporte')
+	# rol_ids = fields.One2many('rol', 'partner_id', "ROL - Informes")
+	# rol_id = fields.Many2one('rol', "ROL - Consulta actual")
+	# domicilio_ids = fields.One2many(related='rol_id.persona_id.domicilio_ids')
+	# telefono_ids = fields.Char('telefono_ids')
+	# personas_igual_domicilio_ids = fields.One2many(related='rol_id.persona_id.personas_igual_domicilio_ids')
+	# personas_relacionada_ids = fields.One2many(related='rol_id.persona_id.personas_relacionada_ids')
+	# vecino_ids = fields.One2many(related='rol_id.persona_id.vecino_ids')
+	# rol_modelo = fields.Char('Rol modelo')
+	# rol_name = fields.Char('Nombre', related='rol_id.persona_id.nombre')
+	# rol_cuit = fields.Char('Identificacion', related='rol_id.persona_id.rol_id')
+	# rol_perfil_letra = fields.Char('Perfil', related='rol_id.persona_id.perfil_id.letra')
+	# rol_perfil_texto = fields.Char('Detalle', related='rol_id.persona_id.perfil_id.texto')
+	# rol_experto_nombre = fields.Char('Modelo evaluado', related='rol_id.persona_id.experto_id.nombre')
+	# rol_experto_codigo = fields.Char('Codigo', related='rol_id.persona_id.experto_id.codigo')
+	# rol_experto_ingreso = fields.Char('Ingresos', related='rol_id.persona_id.experto_id.ingreso')
+	# rol_experto_resultado = fields.Char('Resultado', related='rol_id.persona_id.experto_id.resultado',
+	# 	help='S: Superado\nN: Rechazado\nI: Incompleto\nV: Verificar.')
+	# rol_experto_compromiso_mensual = fields.Char('Compromiso mensual', related='rol_id.persona_id.experto_id.compromiso_mensual')
+	# rol_cda_aprobado_id = fields.Many2one('financiera.buro.rol.cda', 'CDA aprobado')
+	# rol_cda_reporte_ids = fields.One2many('financiera.buro.rol.cda.reporte', 'partner_id', 'CDA reporte')
 	# Nueva integracion
+	rol_fecha_ultimo_informe = fields.Datetime('Fecha ultimo informe')
+	rol_domicilio = fields.Char('Domicilio', compute='_compute_rol_domicilio')
 	rol_capacidad_pago_mensual = fields.Float('ROL - CPM', digits=(16,2))
 	rol_partner_tipo_id = fields.Many2one('financiera.partner.tipo', 'ROL - Tipo de cliente')
 	rol_informe_ids = fields.One2many('financiera.rol.informe', 'partner_id', 'ROL - Informes')
@@ -147,55 +142,55 @@ class ExtendsResPartnerRol(models.Model):
 				}
 				list_values.append((0,0, variable_values))
 
-	# Funcion documentada en la API!
-	def consultar_informe_rol(self, forzar=False):
-		rol_configuracion_id = self.company_id.rol_configuracion_id
-		if rol_configuracion_id:
-			dias_ultimo_informe = 0
-			if len(self.rol_id) > 0 and self.rol_id.fecha:
-				fecha_ultimo_informe = datetime.strptime(self.rol_id.fecha, "%Y-%m-%d %H:%M:%S")
-				fecha_actual = datetime.now()
-				diferencia = fecha_actual - fecha_ultimo_informe
-				dias_ultimo_informe = diferencia.days
-			if forzar or len(self.rol_id) == 0 or self.rol_id.fecha == False or dias_ultimo_informe >= rol_configuracion_id.solicitar_informe_dias:
-				params = {
-					'username': rol_configuracion_id.usuario,
-					'password': rol_configuracion_id.password,
-					'formato': 'json',
-					'version': 2,
-				}
-				cuit = self.buscar_persona()
-				if cuit:
-					url = 'https://informe.riesgoonline.com/api/informes/consultar/'
-					url = url + cuit
-					r = requests.get(url, params=params)
-					if r.status_code == 200:
-						data = r.json()
-						nuevo_informe_id = self.env['financiera.rol.informe'].create({})
-						self.rol_informe_ids = [nuevo_informe_id.id]
-						self.rol_variable_ids = [(6, 0, [])]
-						list_values = []
-						self.rol_process_dict("", "", data, list_values, 0)
-						nuevo_informe_id.write({'variable_ids': list_values})
-						self.button_asignar_identidad_rol()
-						self.button_asignar_domicilio_rol()
-						if rol_configuracion_id.ejecutar_cda:
-							self.check_cdas_rol()
-						if rol_configuracion_id.asignar_cda_otorgamiento:
-							self.button_asignar_cpm_y_tipo_rol()
-						rol_configuracion_id.id_informe += 1
-				else:
-					ValidationError("Falta DNI, CUIT o CUIL.")
-		else:
-			ValidationError("Falta configuracion Riesgo Online.")
-		return True
+	# # Funcion documentada en la API!
+	# def consultar_informe_rol(self, forzar=False):
+	# 	rol_configuracion_id = self.company_id.rol_configuracion_id
+	# 	if rol_configuracion_id:
+	# 		dias_ultimo_informe = 0
+	# 		if len(self.rol_id) > 0 and self.rol_id.fecha:
+	# 			fecha_ultimo_informe = datetime.strptime(self.rol_id.fecha, "%Y-%m-%d %H:%M:%S")
+	# 			fecha_actual = datetime.now()
+	# 			diferencia = fecha_actual - fecha_ultimo_informe
+	# 			dias_ultimo_informe = diferencia.days
+	# 		if forzar or len(self.rol_id) == 0 or self.rol_id.fecha == False or dias_ultimo_informe >= rol_configuracion_id.solicitar_informe_dias:
+	# 			params = {
+	# 				'username': rol_configuracion_id.usuario,
+	# 				'password': rol_configuracion_id.password,
+	# 				'formato': 'json',
+	# 				'version': 2,
+	# 			}
+	# 			cuit = self.buscar_persona()
+	# 			if cuit:
+	# 				url = 'https://informe.riesgoonline.com/api/informes/consultar/'
+	# 				url = url + cuit
+	# 				r = requests.get(url, params=params)
+	# 				if r.status_code == 200:
+	# 					data = r.json()
+	# 					nuevo_informe_id = self.env['financiera.rol.informe'].create({})
+	# 					self.rol_informe_ids = [nuevo_informe_id.id]
+	# 					self.rol_variable_ids = [(6, 0, [])]
+	# 					list_values = []
+	# 					self.rol_process_dict("", "", data, list_values, 0)
+	# 					nuevo_informe_id.write({'variable_ids': list_values})
+	# 					self.button_asignar_identidad_rol()
+	# 					self.button_asignar_domicilio_rol()
+	# 					if rol_configuracion_id.ejecutar_cda:
+	# 						self.check_cdas_rol()
+	# 					if rol_configuracion_id.asignar_cda_otorgamiento:
+	# 						self.button_asignar_cpm_y_tipo_rol()
+	# 					rol_configuracion_id.id_informe += 1
+	# 			else:
+	# 				ValidationError("Falta DNI, CUIT o CUIL.")
+	# 	else:
+	# 		ValidationError("Falta configuracion Riesgo Online.")
+	# 	return True
 
 
-	@api.one
-	def button_consultar_informe_rol(self):
-		forzar = self.company_id.rol_configuracion_id.forzar_solicitud
-		self.consultar_informe_rol(forzar)
-		return {'type': 'ir.actions.do_nothing'}
+	# @api.one
+	# def button_consultar_informe_rol(self):
+	# 	forzar = self.company_id.rol_configuracion_id.forzar_solicitud
+	# 	self.consultar_informe_rol(forzar)
+	# 	return {'type': 'ir.actions.do_nothing'}
 
 	def consultar_resultado_informe_rol(self):
 		return self.rol_experto_resultado
@@ -204,44 +199,51 @@ class ExtendsResPartnerRol(models.Model):
 	def solicitar_informe_rol(self, forzar=False):
 		rol_configuracion_id = self.company_id.rol_configuracion_id
 		if rol_configuracion_id:
+			dias_para_consultar_nuevo_informe = rol_configuracion_id.dias_para_consultar_nuevo_informe
 			dias_ultimo_informe = 0
-			# if len(self.rol_id) > 0 and self.rol_id.fecha:
-			# 	fecha_ultimo_informe = datetime.strptime(self.rol_id.fecha, "%Y-%m-%d %H:%M:%S")
-			# 	fecha_actual = datetime.now()
-			# 	diferencia = fecha_actual - fecha_ultimo_informe
-			# 	dias_ultimo_informe = diferencia.days
-			params = {
-				'username': rol_configuracion_id.usuario,
-				'password': rol_configuracion_id.password,
-				'formato': 'json',
-				'version': 2,
-			}
-			if forzar:
-				params['procesar_forzado'] = 1
-			if rol_configuracion_id.modelo_experto:
-				params['procesar_experto'] = rol_configuracion_id.modelo_experto
-			cuit = self.buscar_persona()
-			if cuit:
-				url = 'https://informe.riesgoonline.com/api/informes/solicitar/'
-				url = url + cuit
-				r = requests.get(url, params=params)
-				if r.status_code == 200:
-					data = r.json()
-					nuevo_informe_id = self.env['financiera.rol.informe'].create({})
-					self.rol_informe_ids = [nuevo_informe_id.id]
-					self.rol_variable_ids = [(6, 0, [])]
-					list_values = []
-					self.process_dict("", "", data, list_values, 0)
-					nuevo_informe_id.write({'variable_ids': list_values})
-					self.button_asignar_identidad_rol()
-					self.button_asignar_domicilio_rol()
-					if rol_configuracion_id.ejecutar_cda:
-							self.check_cdas_rol()
-					if rol_configuracion_id.asignar_cda_otorgamiento:
-						self.button_asignar_cpm_y_tipo_rol()
-					rol_configuracion_id.id_informe += 1
+			if self.rol_fecha_ultimo_informe:
+				fecha_ultimo_informe = datetime.strptime(self.rol_fecha_ultimo_informe, "%Y-%m-%d %H:%M:%S")
+				fecha_actual = datetime.now()
+				diferencia = fecha_actual - fecha_ultimo_informe
+				dias_ultimo_informe = diferencia.days
+			if not self.rol_fecha_ultimo_informe or dias_ultimo_informe >= dias_para_consultar_nuevo_informe:
+				params = {
+					'username': rol_configuracion_id.usuario,
+					'password': rol_configuracion_id.password,
+					'formato': 'json',
+					'version': 2,
+				}
+				if forzar:
+					params['procesar_forzado'] = 1
+				if rol_configuracion_id.modelo_experto:
+					params['procesar_experto'] = rol_configuracion_id.modelo_experto
+				cuit = self.buscar_persona()
+				if cuit:
+					url = 'https://informe.riesgoonline.com/api/informes/solicitar/'
+					url = url + cuit
+					r = requests.get(url, params=params)
+					if r.status_code == 200:
+						data = r.json()
+					if not 'error' in data:
+							nuevo_informe_id = self.env['financiera.rol.informe'].create({})
+							self.rol_fecha_ultimo_informe = datetime.now()
+							self.rol_informe_ids = [nuevo_informe_id.id]
+							self.rol_variable_ids = [(6, 0, [])]
+							list_values = []
+							self.rol_process_dict("", "", data, list_values, 0)
+							nuevo_informe_id.write({'variable_ids': list_values})
+							self.button_asignar_identidad_rol()
+							self.button_asignar_domicilio_rol()
+							if rol_configuracion_id.ejecutar_cda:
+									self.check_cdas_rol()
+							if rol_configuracion_id.asignar_cda_otorgamiento:
+								self.button_asignar_cpm_y_tipo_rol()
+							rol_configuracion_id.id_informe += 1
+				else:
+					ValidationError("Falta DNI, CUIT o CUIL.")
 			else:
-				ValidationError("Falta DNI, CUIT o CUIL.")
+				# El ultimo informe es valido
+				return True
 		else:
 			ValidationError("Falta configuracion Riesgo Online.")
 		return True

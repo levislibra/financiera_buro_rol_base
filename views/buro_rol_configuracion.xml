@@ -34,11 +34,10 @@
 												<field name="solicitar_informe_enviar_a_revision"/>
 												<field name="origen_ids" widget="many2many_tags" options="{'no_quick_create':True,'no_create_edit':True, 'no_open':True}"
 													attrs="{'invisible': [('solicitar_informe_enviar_a_revision', '=', False)]}"/>
-												<field name="solicitar_informe_dias"/>
+												<field name="dias_para_consultar_nuevo_informe"/>
 												<field name="forzar_solicitud"/>
 												<field name="ejecutar_cda"/>
 												<field name="asignar_cda_otorgamiento"/>
-												<field name="modelo_experto"/>
 												<field name="porcentaje_respuestas_correctas"/>
                       </group>
 									</group>

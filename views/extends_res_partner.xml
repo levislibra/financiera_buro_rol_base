@@ -48,7 +48,10 @@
       <field name="arch" type="xml">
         <xpath expr="//group[@name='risk']" position="inside">
           <group name='rol' string="Riesgo Online" col="1" style="background-color: #E6E6E6">
-            <field name="rol_variable_ids">
+            <group>
+							<field name="rol_fecha_ultimo_informe"/>
+						</group>
+						<field name="rol_variable_ids">
 							<tree limit="10">
 								<!-- <field name="sub_name"/> -->
 								<field name="name"/>
@@ -66,8 +69,8 @@
 						</group>
             <separate col="1"/>
             <group name='rol_button_action' col="2">
+							<button name="solicitar_informe_rol" string="API solicitar informe" type="object" confirm="Desea solicitar el informe?"/>
               <button name="button_solicitar_informe_rol" string="Solicitar informe" type="object" confirm="Desea solicitar el informe?"/>
-              <button name="button_consultar_informe_rol" string="Consultar informe" type="object" confirm="Desea consultar el informe?"/>
 							<button name="button_descargar_informe_rol" string="Descargar informe" type="object"/>
 							<button name="obtener_preguntas_rol" string="Obtener preguntas ROL" type="object"/>
 							<button name="button_asignar_identidad_rol" string="Asignar identidad ROL" type="object"/>
@@ -78,147 +81,7 @@
         </xpath>
       </field>
     </record>
-
-    <!-- Extends res.partner Cobranza y Seguimiento
-				Vista en Menu Deudores -->
-
-		<record id="cobranza_mora_cliente_sesion_form"  model="ir.ui.view">
-      <field name="name">cobranza.mora.form.extends</field>
-			<field name="model">res.partner</field>
-			<field name="inherit_id" ref="financiera_cobranza_mora.cobranza_mora_cliente_sesion_form"/>
-      <field name="arch" type="xml">
-				<xpath expr="//field[@name='cobranza_disponible']" position="after">
-					<field name="rol_name" invisible="1"/>
-					<!-- <button name="button_actualizar_rol_actual" string="Actualizar datos ROL" 
-						type="object" attrs="{'invisible': [('rol_name', '!=', False)]}"/> -->
-					<field name="rol_id" invisible="1"/>
-				</xpath>
-				<xpath expr="//page[1]" position="after">
-					<page name="domicilio" string="Domicilios (ROL)" 
-						attrs="{'invisible': [('rol_name', '=', False)]}">
-						<field name="domicilio_ids" readonly="1">
-							<tree limit="4">
-								<field name="tipo"/>
-								<field name="domicilio"/>
-							</tree>
-						</field>
-					</page>
-					<page name="telefono" string="Telefono (ROL)"
-						attrs="{'invisible': [('rol_name', '=', False)]}">
-						<field name="telefono_ids" readonly="1">
-							<tree limit="4">
-								<field name="titular"/>
-								<field name="domicilio"/>
-								<field name="numero"/>
-							</tree>
-						</field>
-					</page>
-					<page name="personas_igual_domicilio" string="Personas igual domicilio (ROL)"
-						attrs="{'invisible': [('rol_name', '=', False)]}">
-						<field name="personas_igual_domicilio_ids" readonly="1">
-								<tree limit="4">
-									<field name="nombre"/>
-									<field name="rol_id" string="CUIT"/>
-									<field name="sexo"/>
-									<field name="domicilio"/>
-									<field name="relacion"/>
-								</tree>
-							</field>
-					</page>
-					<page name="personas_relacionada" string="Personas relacionadas (ROL)"
-						attrs="{'invisible': [('rol_name', '=', False)]}">
-						<field name="personas_relacionada_ids" readonly="1">
-							<tree limit="4">
-								<field name="nombre"/>
-								<field name="rol_id" string="CUIT"/>
-								<field name="sexo"/>
-								<field name="domicilio"/>
-								<field name="relacion"/>
-							</tree>
-						</field>
-					</page>
-					<page name="vecinos" string="Vecinos (ROL)"
-						attrs="{'invisible': [('rol_name', '=', False)]}">
-						<field name="vecino_ids" readonly="1">
-							<tree limit="4">
-								<field name="titular"/>
-								<field name="domicilio"/>
-								<field name="numero"/>
-							</tree>
-						</field>
-					</page>
-				</xpath>
-      </field>
-		</record>
 		
-		<!-- Extends res.partner Cobranza y Seguimiento SESION -->
-
-		<record id="cobranza_mora_cliente_sesion_form"  model="ir.ui.view">
-      <field name="name">cobranza.mora.form.extends</field>
-			<field name="model">res.partner</field>
-			<field name="inherit_id" ref="financiera_cobranza_mora.cobranza_mora_cliente_sesion_form"/>
-      <field name="arch" type="xml">
-				<xpath expr="//field[@name='email']" position="after">
-					<field name="rol_name" invisible="1"/>
-					<field name="rol_id" invisible="1"/>
-				</xpath>
-				<xpath expr="//page[1]" position="after">
-					<page name="domicilio" string="Domicilios (ROL)" 
-						attrs="{'invisible': [('rol_name', '=', False)]}">
-						<field name="domicilio_ids" readonly="1">
-							<tree limit="4">
-								<field name="tipo"/>
-								<field name="domicilio"/>
-							</tree>
-						</field>
-					</page>
-					<page name="telefono" string="Telefono (ROL)"
-						attrs="{'invisible': [('rol_name', '=', False)]}">
-						<field name="telefono_ids" readonly="1">
-							<tree limit="4">
-								<field name="titular"/>
-								<field name="domicilio"/>
-								<field name="numero"/>
-							</tree>
-						</field>
-					</page>
-					<page name="personas_igual_domicilio" string="Personas igual domicilio (ROL)"
-						attrs="{'invisible': [('rol_name', '=', False)]}">
-						<field name="personas_igual_domicilio_ids" readonly="1">
-								<tree limit="4">
-									<field name="nombre"/>
-									<field name="rol_id" string="CUIT"/>
-									<field name="sexo"/>
-									<field name="domicilio"/>
-									<field name="relacion"/>
-								</tree>
-							</field>
-					</page>
-					<page name="personas_relacionada" string="Personas relacionadas (ROL)"
-						attrs="{'invisible': [('rol_name', '=', False)]}">
-						<field name="personas_relacionada_ids" readonly="1">
-							<tree limit="4">
-								<field name="nombre"/>
-								<field name="rol_id" string="CUIT"/>
-								<field name="sexo"/>
-								<field name="domicilio"/>
-								<field name="relacion"/>
-							</tree>
-						</field>
-					</page>
-					<page name="vecinos" string="Vecinos (ROL)"
-						attrs="{'invisible': [('rol_name', '=', False)]}">
-						<field name="vecino_ids" readonly="1">
-							<tree limit="4">
-								<field name="titular"/>
-								<field name="domicilio"/>
-								<field name="numero"/>
-							</tree>
-						</field>
-					</page>
-				</xpath>
-      </field>
-		</record>
 		
 	<!-- vista de preguntas para VI -->
 
