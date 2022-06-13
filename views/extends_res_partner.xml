@@ -69,7 +69,6 @@
 						</group>
             <separate col="1"/>
             <group name='rol_button_action' col="2">
-							<button name="solicitar_informe_rol" string="API solicitar informe" type="object" confirm="Desea solicitar el informe?"/>
               <button name="button_solicitar_informe_rol" string="Solicitar informe" type="object" confirm="Desea solicitar el informe?"/>
 							<button name="button_descargar_informe_rol" string="Descargar informe" type="object"/>
 							<button name="obtener_preguntas_rol" string="Obtener preguntas ROL" type="object"/>
