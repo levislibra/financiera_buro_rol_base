@@ -31,9 +31,6 @@
                         <field name="saldo_informes" readonly="1"/>
                       </group>
                       <group>
-												<field name="solicitar_informe_enviar_a_revision"/>
-												<field name="origen_ids" widget="many2many_tags" options="{'no_quick_create':True,'no_create_edit':True, 'no_open':True}"
-													attrs="{'invisible': [('solicitar_informe_enviar_a_revision', '=', False)]}"/>
 												<field name="dias_para_consultar_nuevo_informe"/>
 												<field name="forzar_solicitud"/>
 												<field name="ejecutar_cda"/>

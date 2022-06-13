@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from openerp import models, fields, api
-from datetime import datetime, timedelta, date
-from dateutil import relativedelta
+from datetime import datetime
 from openerp.exceptions import UserError, ValidationError
 import requests
 from dateutil.parser import parse
