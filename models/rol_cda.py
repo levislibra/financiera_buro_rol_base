@@ -33,7 +33,7 @@ class FinancieraRolCda(models.Model):
 			regla_resultado_id.rol_cda_id = None
 			regla_resultado_id.rol_cda_resultado_id = cda_resultado_id.id
 			regla_resultado_id.ejecutar(informe_id)
-			if regla_resultado_id.resultado == 'rechazado':
+			if not regla_resultado_id.no_rechazar and regla_resultado_id.resultado == 'rechazado':
 				resultado = 'rechazado'
 			cda_resultado_id.regla_ids = [regla_resultado_id.id]
 		cda_resultado_id.resultado = resultado
@@ -78,6 +78,8 @@ class FinancierarolCdaRegla(models.Model):
 		('menor_o_igual_que', 'menor o igual que')
 	], 'Condicion')
 	valor = fields.Char('Valor')
+	no_rechazar = fields.Boolean('No rechazar Regla')
+	aprobar_si_no_existe = fields.Boolean('Aprobar si no existe')
 	cpm_multiplicar = fields.Float('CPM - Multiplicar base por', default=1.00)
 	cpm_sumar = fields.Float('CPM - Sumar base')
 	cpm_multiplicar_valor = fields.Float('CPM - Multiplicar valor por y sumar a base', default=0.00)
@@ -168,3 +170,10 @@ class FinancierarolCdaRegla(models.Model):
 				self.rol_cda_resultado_id.otorgar_cpm += self.cpm_sumar
 				if variable_id.valor and variable_id.valor.isdigit():
 					self.rol_cda_resultado_id.otorgar_cpm += int(variable_id.valor) * self.cpm_multiplicar_valor
+		else:
+			# La variable no existe!
+			self.detalle = 'La variable no existe'
+			if self.aprobar_si_no_existe:
+				self.resultado = 'aprobado'
+			else:
+				self.resultado = 'rechazado'

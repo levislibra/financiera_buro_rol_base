@@ -84,6 +84,8 @@
 																	<field name="operador"/>
 																	<field name="valor"/>
 																	<field name="resultado"/>
+																	<field name="no_rechazar"/>
+																	<field name="aprobar_si_no_existe"/>
 																	<field name="detalle"/>
 																	<field name="cpm_multiplicar"/>
 																	<field name="cpm_sumar"/>
