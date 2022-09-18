@@ -9,27 +9,6 @@ class ExtendsResPartnerRol(models.Model):
 	_name = 'res.partner'
 	_inherit = 'res.partner'
 
-	# rol_ids = fields.One2many('rol', 'partner_id', "ROL - Informes")
-	# rol_id = fields.Many2one('rol', "ROL - Consulta actual")
-	# domicilio_ids = fields.One2many(related='rol_id.persona_id.domicilio_ids')
-	# telefono_ids = fields.Char('telefono_ids')
-	# personas_igual_domicilio_ids = fields.One2many(related='rol_id.persona_id.personas_igual_domicilio_ids')
-	# personas_relacionada_ids = fields.One2many(related='rol_id.persona_id.personas_relacionada_ids')
-	# vecino_ids = fields.One2many(related='rol_id.persona_id.vecino_ids')
-	# rol_modelo = fields.Char('Rol modelo')
-	# rol_name = fields.Char('Nombre', related='rol_id.persona_id.nombre')
-	# rol_cuit = fields.Char('Identificacion', related='rol_id.persona_id.rol_id')
-	# rol_perfil_letra = fields.Char('Perfil', related='rol_id.persona_id.perfil_id.letra')
-	# rol_perfil_texto = fields.Char('Detalle', related='rol_id.persona_id.perfil_id.texto')
-	# rol_experto_nombre = fields.Char('Modelo evaluado', related='rol_id.persona_id.experto_id.nombre')
-	# rol_experto_codigo = fields.Char('Codigo', related='rol_id.persona_id.experto_id.codigo')
-	# rol_experto_ingreso = fields.Char('Ingresos', related='rol_id.persona_id.experto_id.ingreso')
-	# rol_experto_resultado = fields.Char('Resultado', related='rol_id.persona_id.experto_id.resultado',
-	# 	help='S: Superado\nN: Rechazado\nI: Incompleto\nV: Verificar.')
-	# rol_experto_compromiso_mensual = fields.Char('Compromiso mensual', related='rol_id.persona_id.experto_id.compromiso_mensual')
-	# rol_cda_aprobado_id = fields.Many2one('financiera.buro.rol.cda', 'CDA aprobado')
-	# rol_cda_reporte_ids = fields.One2many('financiera.buro.rol.cda.reporte', 'partner_id', 'CDA reporte')
-	# Nueva integracion
 	rol_fecha_ultimo_informe = fields.Datetime('Fecha ultimo informe')
 	rol_domicilio = fields.Char('Domicilio', compute='_compute_rol_domicilio')
 	rol_capacidad_pago_mensual = fields.Float('ROL - CPM', digits=(16,2))

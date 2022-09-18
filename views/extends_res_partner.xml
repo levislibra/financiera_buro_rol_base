@@ -1,88 +1,69 @@
 <openerp>
-  <data>
-    <!-- Vista Form Partner Page Buro ROL -->
+	<data>
 
-    <record id="partner_rol_form_inherited"  model="ir.ui.view">
-      <field name="name">Extension Partner rol form</field>
-      <field name="model">res.partner</field>
-      <field name="inherit_id" ref="base.view_partner_form"/>
-      <field name="arch" type="xml">
-        <xpath expr="//page[2]" position='after'>
-          <page string='Riesgo Online' groups="financiera_buro_rol_base.manager">
-						<notebook>
-              <page string="Informes">
-								<group>
-									<group col="1">
-										<field name="rol_informe_ids">
+		<!-- Perfil Principal del cliente Group Risk -->
+
+		<record id="partner_form_inherited" model="ir.ui.view">
+			<field name="name">Extension Partner rol form</field>
+			<field name="model">res.partner</field>
+			<field name="inherit_id" ref="financiera_prestamos.partner_form_inherited" />
+			<field name="arch" type="xml">
+				<xpath expr="//notebook[@name='risk']" position="inside">
+					<page name='rol' string="Riesgo Online" col="1" style="background-color: #E6E6E6">
+						<group col="3">
+							<group string="Funciones" name='rol_button_action' col="1">
+								<button name="button_solicitar_informe_rol" string="Solicitar informe" type="object" confirm="Desea solicitar el informe?" />
+								<button name="button_descargar_informe_rol" string="Descargar informe" type="object" />
+								<button name="obtener_preguntas_rol" string="Obtener preguntas ROL" type="object" />
+								<button name="button_asignar_identidad_rol" string="Asignar identidad ROL" type="object" />
+								<button name="button_asignar_cpm_y_tipo_rol" string="Asignar CPM y Tipo ROL" type="object" />
+								<button name="check_cdas_rol" string="Ejecutar CDAs ROL" type="object" />
+							</group>
+							<group string="Otorgamiento" col="1" style="background-color: lightsteelblue;">
+								<field name="rol_capacidad_pago_mensual" readonly="1" />
+								<field name="rol_partner_tipo_id" readonly="1" />
+							</group>
+							<group col="1"></group>
+						</group>
+						<group string="Informe actual" col="2">
+							<group col="1">
+								<field name="rol_fecha_ultimo_informe" />
+								<field name="rol_variable_ids">
+									<tree limit="10">
+										<field name="name" />
+										<field name="valor" />
+										<field name="tipo" />
+									</tree>
+								</field>
+							</group>
+							<group col="1">
+								<field name="rol_validador_identidad_id" />
+							</group>
+						</group>
+						<group string="Informes historico" col="2">
+							<group col="1">
+								<field name="rol_informe_ids">
+									<tree>
+										<field name="create_date" string="Fecha" />
+										<field name="variable_ids" readonly='1'>
 											<tree>
-												<field name="create_date" string="Fecha"/>
-												<field name="variable_ids" readonly='1'>
-													<tree>
-														<!-- <field name="sub_name"/> -->
-														<field name="name"/>
-														<field name="valor"/>
-														<field name="tipo"/>
-													</tree>
-												</field>
+												<field name="name" />
+												<field name="valor" />
+												<field name="tipo" />
 											</tree>
 										</field>
-									</group>
-									<group col="1">
-										<field name="rol_validador_identidad_id"/>
-									</group>
-								</group>
-              </page>
-            </notebook>
-          </page>
-        </xpath>
-      </field>
-    </record>
-
-
-    <!-- Perfil Principal del cliente Group Risk -->
-
-    <record id="partner_form_inherited"  model="ir.ui.view">
-      <field name="name">Extension Partner rol form</field>
-      <field name="model">res.partner</field>
-      <field name="inherit_id" ref="financiera_prestamos.partner_form_inherited"/>
-      <field name="arch" type="xml">
-        <xpath expr="//group[@name='risk']" position="inside">
-          <group name='rol' string="Riesgo Online" col="1" style="background-color: #E6E6E6">
-            <group>
-							<field name="rol_fecha_ultimo_informe"/>
-						</group>
-						<field name="rol_variable_ids">
-							<tree limit="10">
-								<!-- <field name="sub_name"/> -->
-								<field name="name"/>
-								<field name="valor"/>
-								<field name="tipo"/>
-							</tree>
-						</field>
-						<group col="2">
-							<group col="1">
-								<field name="rol_capacidad_pago_mensual" readonly="1"/>
+									</tree>
+								</field>
 							</group>
-							<group col="1">
-								<field name="rol_partner_tipo_id" readonly="1"/>
-							</group>
+							<group></group>
 						</group>
-            <separate col="1"/>
-            <group name='rol_button_action' col="2">
-              <button name="button_solicitar_informe_rol" string="Solicitar informe" type="object" confirm="Desea solicitar el informe?"/>
-							<button name="button_descargar_informe_rol" string="Descargar informe" type="object"/>
-							<button name="obtener_preguntas_rol" string="Obtener preguntas ROL" type="object"/>
-							<button name="button_asignar_identidad_rol" string="Asignar identidad ROL" type="object"/>
-							<button name="button_asignar_cpm_y_tipo_rol" string="Asignar CPM y Tipo ROL" type="object"/>
-							<button name="check_cdas_rol" string="Ejecutar CDAs ROL" type="object"/>
-            </group>
-          </group>
-        </xpath>
-      </field>
-    </record>
-		
-		
-	<!-- vista de preguntas para VI -->
+					</page>
+				</xpath>
+			</field>
+		</record>
+
+
+		<!-- vista de preguntas para VI -->
 
 		<record id="rol_preguntas_vi_form" model="ir.ui.view">
 			<field name="name">rol.validador.identidad.form</field>
@@ -96,25 +77,25 @@
 							});
 						</script>
 						<group>
-							<field name="partner_id"/>
-							<field name="nombre"/>
-							<field name="cuit"/>
+							<field name="partner_id" />
+							<field name="nombre" />
+							<field name="cuit" />
 						</group>
 						<notebook>
 							<page name="preguntas" string="Preguntas">
 								<field name="pregunta_ids" limit="10">
 									<tree>
-										<field name="pregunta"/>
-										<field name="respuesta_ids"/>
+										<field name="pregunta" />
+										<field name="respuesta_ids" />
 									</tree>
 									<form>
 										<sheet>
 											<group>
-												<field name="pregunta"/>
+												<field name="pregunta" />
 												<field name="respuesta_ids">
 													<tree>
-														<field name="respuesta"/>
-														<field name="verdadera"/>
+														<field name="respuesta" />
+														<field name="verdadera" />
 													</tree>
 												</field>
 											</group>
@@ -126,7 +107,7 @@
 					</sheet>
 				</form>
 			</field>
-	</record>
+		</record>
 
-</data>
+	</data>
 </openerp>
