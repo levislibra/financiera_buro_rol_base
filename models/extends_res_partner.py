@@ -9,6 +9,7 @@ class ExtendsResPartnerRol(models.Model):
 	_name = 'res.partner'
 	_inherit = 'res.partner'
 
+	rol_contratado = fields.Boolean('ROL Contratado', compute='_compute_rol_contratado')
 	rol_fecha_ultimo_informe = fields.Datetime('Fecha ultimo informe')
 	rol_domicilio = fields.Char('Domicilio', compute='_compute_rol_domicilio')
 	rol_capacidad_pago_mensual = fields.Float('ROL - CPM', digits=(16,2))
@@ -17,6 +18,10 @@ class ExtendsResPartnerRol(models.Model):
 	rol_variable_ids = fields.One2many('financiera.rol.informe.variable', 'partner_id', 'Variables')
 	# Validador de identidad segun preguntas
 	rol_validador_identidad_id = fields.Many2one('rol.validador.identidad', 'Preguntas')
+
+	@api.one
+	def _compute_rol_contratado(self):
+		self.rol_contratado = True if self.company_id.rol_configuracion_id else False
 
 	def buscar_persona(self):
 		ret = None

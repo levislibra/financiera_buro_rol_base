@@ -8,8 +8,11 @@
 			<field name="model">res.partner</field>
 			<field name="inherit_id" ref="financiera_prestamos.partner_form_inherited" />
 			<field name="arch" type="xml">
+				<xpath expr="//group[@name='risk_contratado']" position="inside">
+					<field name='rol_contratado' invisible="0"/>
+				</xpath>
 				<xpath expr="//notebook[@name='risk']" position="inside">
-					<page name='rol' string="Riesgo Online" col="1" style="background-color: #E6E6E6">
+					<page name='rol' string="Riesgo Online" col="1" attrs="{'invisible': [('rol_contratado', '=', False)]}">
 						<group col="3">
 							<group string="Funciones" name='rol_button_action' col="1">
 								<button name="button_solicitar_informe_rol" string="Solicitar informe" type="object" confirm="Desea solicitar el informe?" />
