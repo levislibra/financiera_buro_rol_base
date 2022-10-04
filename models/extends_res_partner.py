@@ -9,7 +9,7 @@ class ExtendsResPartnerRol(models.Model):
 	_name = 'res.partner'
 	_inherit = 'res.partner'
 
-	rol_contratado = fields.Boolean('ROL Contratado', compute='_compute_rol_contratado')
+	rol_contratado = fields.Boolean('Riesgo Online', compute='_compute_rol_contratado')
 	rol_fecha_ultimo_informe = fields.Datetime('Fecha ultimo informe')
 	rol_domicilio = fields.Char('Domicilio', compute='_compute_rol_domicilio')
 	rol_capacidad_pago_mensual = fields.Float('ROL - CPM', digits=(16,2))
