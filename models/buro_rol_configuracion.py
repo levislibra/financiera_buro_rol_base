@@ -13,6 +13,7 @@ class FinancieraBuroRolConfiguracion(models.Model):
 	name = fields.Char('Nombre')
 	usuario = fields.Char('Usuario')
 	password = fields.Char('Password')
+	api_key = fields.Char('API Key')
 	saldo_informes = fields.Integer('Saldo Informes')
 	
 	id_informe = fields.Integer('Id proximo informe', default=1)
@@ -43,11 +44,13 @@ class FinancieraBuroRolConfiguracion(models.Model):
 		s = requests.Session()
 		params = {
 			'action': 'login',
-			'username': self.usuario,
-			'password': self.password,
+			# 'username': self.usuario,
+			# 'password': self.password,
+			'key': self.api_key,
 		}
 		r = s.post('https://informe.riesgoonline.com/api/usuarios/sesion', params=params)
 		data = r.json()
+		print("data: ", data)
 		if r.status_code == 200:
 			self.saldo_informes = int(data['cliente_informes'])
 		elif 'error' in data:

@@ -16,6 +16,7 @@
 						<group col="3">
 							<group string="Funciones" name='rol_button_action' col="1">
 								<button name="button_solicitar_informe_rol" string="Solicitar informe" type="object" confirm="Desea solicitar el informe?" />
+								<button name="button_consultar_informe_rol" string="Consultar informe" type="object" confirm="Desea consultar el informe?" />
 								<button name="button_descargar_informe_rol" string="Descargar informe" type="object" />
 								<button name="obtener_preguntas_rol" string="Obtener preguntas ROL" type="object" />
 								<button name="button_asignar_identidad_rol" string="Asignar identidad ROL" type="object" />

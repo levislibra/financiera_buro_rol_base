@@ -28,14 +28,21 @@ class ExtendsResPartnerRol(models.Model):
 		rol_configuracion_id = self.company_id.rol_configuracion_id
 		if rol_configuracion_id:
 			params = {
-				'username': rol_configuracion_id.usuario,
-				'password': rol_configuracion_id.password,
-				'version': 2,
+				# 'username': rol_configuracion_id.usuario,
+				# 'password': rol_configuracion_id.password,
+				'key': rol_configuracion_id.api_key,
+				'formato': 'json',
+				# 'version': 2,
 			}
 			url = 'https://informe.riesgoonline.com/api/informes?buscar='
+			print("BUSCAR PERSONA")
+			print("params: ", params)
 			if self.main_id_number and len(self.main_id_number) > 2:
 				url = url + self.main_id_number
 				r = requests.get(url, params=params)
+				print("r: ", r)
+				print("r.status_code: ", r.status_code)
+				print("r.text: ", r.text)
 				data = r.json()
 				if 'error' in data.keys():
 					raise ValidationError(data['error'])
@@ -111,7 +118,7 @@ class ExtendsResPartnerRol(models.Model):
 			variable_descripcion = key
 			variable_tipo = type
 			flag_pass = True
-			if parent_key and (('telefonos_' in parent_key and len(parent_key) > 11) or ('informe' == parent_key)):
+			if parent_key and (('telefonos_' in parent_key and len(parent_key) > 11) or ('informe' == parent_key and 'informe_id' != variable_nombre)):
 				flag_pass = False
 			if flag_pass:
 				variable_values = {
@@ -125,58 +132,49 @@ class ExtendsResPartnerRol(models.Model):
 				}
 				list_values.append((0,0, variable_values))
 
-	# # Funcion documentada en la API!
-	# def consultar_informe_rol(self, forzar=False):
-	# 	rol_configuracion_id = self.company_id.rol_configuracion_id
-	# 	if rol_configuracion_id:
-	# 		dias_ultimo_informe = 0
-	# 		if len(self.rol_id) > 0 and self.rol_id.fecha:
-	# 			fecha_ultimo_informe = datetime.strptime(self.rol_id.fecha, "%Y-%m-%d %H:%M:%S")
-	# 			fecha_actual = datetime.now()
-	# 			diferencia = fecha_actual - fecha_ultimo_informe
-	# 			dias_ultimo_informe = diferencia.days
-	# 		if forzar or len(self.rol_id) == 0 or self.rol_id.fecha == False or dias_ultimo_informe >= rol_configuracion_id.solicitar_informe_dias:
-	# 			params = {
-	# 				'username': rol_configuracion_id.usuario,
-	# 				'password': rol_configuracion_id.password,
-	# 				'formato': 'json',
-	# 				'version': 2,
-	# 			}
-	# 			cuit = self.buscar_persona()
-	# 			if cuit:
-	# 				url = 'https://informe.riesgoonline.com/api/informes/consultar/'
-	# 				url = url + cuit
-	# 				r = requests.get(url, params=params)
-	# 				if r.status_code == 200:
-	# 					data = r.json()
-	# 					nuevo_informe_id = self.env['financiera.rol.informe'].create({})
-	# 					self.rol_informe_ids = [nuevo_informe_id.id]
-	# 					self.rol_variable_ids = [(6, 0, [])]
-	# 					list_values = []
-	# 					self.rol_process_dict("", "", data, list_values, 0)
-	# 					nuevo_informe_id.write({'variable_ids': list_values})
-	# 					self.button_asignar_identidad_rol()
-	# 					self.button_asignar_domicilio_rol()
-	# 					if rol_configuracion_id.ejecutar_cda:
-	# 						self.check_cdas_rol()
-	# 					if rol_configuracion_id.asignar_cda_otorgamiento:
-	# 						self.button_asignar_cpm_y_tipo_rol()
-	# 					rol_configuracion_id.id_informe += 1
-	# 			else:
-	# 				ValidationError("Falta DNI, CUIT o CUIL.")
-	# 	else:
-	# 		ValidationError("Falta configuracion Riesgo Online.")
-	# 	return True
+	# Funcion documentada en la API!
+	def consultar_informe_rol(self):
+		rol_configuracion_id = self.company_id.rol_configuracion_id
+		if rol_configuracion_id:
+			params = {
+				'key': rol_configuracion_id.api_key,
+				'formato': 'json',
+				'version': 2,
+			}
+			cuit = self.main_id_number #self.buscar_persona()
+			if cuit:
+				url = 'https://informe.riesgoonline.com/api/informes/consultar/'
+				url = url + cuit
+				print("params: ", params)
+				r = requests.get(url, params=params)
+				print("r: ", r)
+				if r.status_code == 200:
+					data = r.json()
+					print("data: ", data)
+					nuevo_informe_id = self.env['financiera.rol.informe'].create({})
+					self.rol_informe_ids = [nuevo_informe_id.id]
+					self.rol_variable_ids = [(6, 0, [])]
+					list_values = []
+					self.rol_process_dict("", "", data, list_values, 0)
+					nuevo_informe_id.write({'variable_ids': list_values})
+					self.button_asignar_identidad_rol()
+					self.button_asignar_domicilio_rol()
+					if rol_configuracion_id.ejecutar_cda:
+						self.check_cdas_rol()
+					if rol_configuracion_id.asignar_cda_otorgamiento:
+						self.button_asignar_cpm_y_tipo_rol()
+					rol_configuracion_id.id_informe += 1
+				else:
+					ValidationError("Falta DNI, CUIT o CUIL.")
+		else:
+			ValidationError("Falta configuracion Riesgo Online.")
+		return True
 
 
-	# @api.one
-	# def button_consultar_informe_rol(self):
-	# 	forzar = self.company_id.rol_configuracion_id.forzar_solicitud
-	# 	self.consultar_informe_rol(forzar)
-	# 	return {'type': 'ir.actions.do_nothing'}
-
-	def consultar_resultado_informe_rol(self):
-		return self.rol_experto_resultado
+	@api.one
+	def button_consultar_informe_rol(self):
+		self.consultar_informe_rol()
+		return {'type': 'ir.actions.do_nothing'}
 
 	# Funcion documentada en la API!
 	def solicitar_informe_rol(self, forzar=False):
@@ -191,20 +189,24 @@ class ExtendsResPartnerRol(models.Model):
 				dias_ultimo_informe = diferencia.days
 			if not self.rol_fecha_ultimo_informe or dias_ultimo_informe >= dias_para_consultar_nuevo_informe:
 				params = {
-					'username': rol_configuracion_id.usuario,
-					'password': rol_configuracion_id.password,
+					# 'username': rol_configuracion_id.usuario,
+					# 'password': rol_configuracion_id.password,
+					'key': rol_configuracion_id.api_key,
 					'formato': 'json',
-					'version': 2,
+					# 'version': 2,
 				}
 				if forzar:
 					params['procesar_forzado'] = 1
 				if rol_configuracion_id.modelo_experto:
 					params['procesar_experto'] = rol_configuracion_id.modelo_experto
-				cuit = self.buscar_persona()
+				cuit = self.main_id_number #self.buscar_persona()
 				if cuit:
 					url = 'https://informe.riesgoonline.com/api/informes/solicitar/'
 					url = url + cuit
 					r = requests.get(url, params=params)
+					print("r: ", r)
+					print("r.status_code: ", r.status_code)
+					print("r.text: ", r.text)
 					if r.status_code == 200:
 						data = r.json()
 					if not 'error' in data:
@@ -347,13 +349,17 @@ class ExtendsResPartnerRol(models.Model):
 		rol_configuracion_id = self.company_id.rol_configuracion_id
 		if rol_configuracion_id:
 			params = {
-				'username': rol_configuracion_id.usuario,
-				'password': rol_configuracion_id.password,
-				'version': 2,
+				# 'username': rol_configuracion_id.usuario,
+				# 'password': rol_configuracion_id.password,
+				'key': rol_configuracion_id.api_key,
+				'formato': 'json',
+				# 'version': 2,
 			}
-			if len(self.rol_id) > 0:
-				cuit = self.rol_cuit
-				informe = self.rol_id.informe_id.rol_id
+			if len(self.rol_informe_ids) > 0:
+				cuit = self.get_variable_name('persona_id').valor
+				print("cuit: ", cuit)
+				informe = self.get_variable_name('informe_id').valor
+				print("informe: ", informe)
 				url = 'https://informe.riesgoonline.com/api/validador/%s/%s'%(str(cuit),str(informe))
 				r = requests.get(url, params=params)
 				data = r.json()
