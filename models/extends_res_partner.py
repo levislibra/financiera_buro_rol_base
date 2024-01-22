@@ -141,7 +141,7 @@ class ExtendsResPartnerRol(models.Model):
 				'formato': 'json',
 				'version': 2,
 			}
-			cuit = self.main_id_number #self.buscar_persona()
+			cuit = self.buscar_persona()
 			if cuit:
 				url = 'https://informe.riesgoonline.com/api/informes/consultar/'
 				url = url + cuit
@@ -199,7 +199,7 @@ class ExtendsResPartnerRol(models.Model):
 					params['procesar_forzado'] = 1
 				if rol_configuracion_id.modelo_experto:
 					params['procesar_experto'] = rol_configuracion_id.modelo_experto
-				cuit = self.main_id_number #self.buscar_persona()
+				cuit = self.buscar_persona()
 				if cuit:
 					url = 'https://informe.riesgoonline.com/api/informes/solicitar/'
 					url = url + cuit
