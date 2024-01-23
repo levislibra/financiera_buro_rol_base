@@ -160,7 +160,7 @@ class ExtendsResPartnerRol(models.Model):
 					self.button_asignar_identidad_rol()
 					self.button_asignar_domicilio_rol()
 					if rol_configuracion_id.ejecutar_cda:
-						self.check_cdas_rol()
+						nuevo_informe_id.ejecutar_cdas()
 					if rol_configuracion_id.asignar_cda_otorgamiento:
 						self.button_asignar_cpm_y_tipo_rol()
 					rol_configuracion_id.id_informe += 1
@@ -220,7 +220,7 @@ class ExtendsResPartnerRol(models.Model):
 							self.button_asignar_identidad_rol()
 							self.button_asignar_domicilio_rol()
 							if rol_configuracion_id.ejecutar_cda:
-									self.check_cdas_rol()
+								nuevo_informe_id.ejecutar_cdas()
 							if rol_configuracion_id.asignar_cda_otorgamiento:
 								self.button_asignar_cpm_y_tipo_rol()
 							rol_configuracion_id.id_informe += 1
